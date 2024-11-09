@@ -1,0 +1,33 @@
+        .gradient-text {
+            background: linear-gradient(45deg, #4F46E5, #7C3AED);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .nav-link {
+            position: relative;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background: #4F46E5;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        .card {
+            transition: transform 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .view-button {
+            transition: all 0.3s ease;
+        }
+        .view-button:hover {
+            transform: translateX(5px);
+        }

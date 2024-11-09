@@ -186,40 +186,50 @@
 </footer>
 
     <script>
-      document.addEventListener('DOMContentLoaded', function() {
-            // Mobile menu toggle
-            const menuBtn = document.getElementById('menuBtn');
-            const mobileMenu = document.getElementById('mobileMenu');
-            let isMenuOpen = false;
-
-            menuBtn.addEventListener('click', function() {
-                isMenuOpen = !isMenuOpen;
-                mobileMenu.classList.toggle('hidden');
-            });
-
-            // Mobile dropdown functionality
-            const mobileDropdownBtns = document.querySelectorAll('.mobile-dropdown-btn');
+        document.addEventListener('DOMContentLoaded', function() {
+            // Dropdown functionality
+            const dropdownButtons = document.querySelectorAll('.dropdown-button');
             
-            mobileDropdownBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    // Toggle the dropdown content
-                    const dropdownContent = this.nextElementSibling;
-                    dropdownContent.classList.toggle('hidden');
+            dropdownButtons.forEach(button => {
+                let isOpen = false;
+                
+                // Toggle dropdown on button click
+                button.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const dropdownContent = button.nextElementSibling;
                     
-                    // Rotate the arrow icon
-                    const arrow = this.querySelector('svg');
-                    arrow.classList.toggle('rotate-180');
+                    // Close all other dropdowns
+                    document.querySelectorAll('.dropdown-content').forEach(content => {
+                        if (content !== dropdownContent) {
+                            content.classList.add('hidden');
+                        }
+                    });
+                    
+                    // Toggle current dropdown
+                    isOpen = !isOpen;
+                    dropdownContent.classList.toggle('hidden');
+                });
+                
+                // Keep dropdown open when hovering over it
+                const dropdownContent = button.nextElementSibling;
+                dropdownContent.addEventListener('mouseenter', () => {
+                    isOpen = true;
+                    dropdownContent.classList.remove('hidden');
+                });
+                
+                dropdownContent.addEventListener('mouseleave', () => {
+                    if (!isOpen) {
+                        dropdownContent.classList.add('hidden');
+                    }
                 });
             });
-
-            // Close mobile menu when clicking outside
-            document.addEventListener('click', function(event) {
-                const isClickInsideMenu = mobileMenu.contains(event.target);
-                const isClickOnMenuBtn = menuBtn.contains(event.target);
-                
-                if (!isClickInsideMenu && !isClickOnMenuBtn && isMenuOpen) {
-                    mobileMenu.classList.add('hidden');
-                    isMenuOpen = false;
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.dropdown-button')) {
+                    document.querySelectorAll('.dropdown-content').forEach(dropdown => {
+                        dropdown.classList.add('hidden');
+                    });
                 }
             });
 

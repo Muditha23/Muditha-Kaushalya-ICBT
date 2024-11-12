@@ -3,18 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Muditha's Portfolio</title>
-   <!-- Tailwind CSS CDN -->
+    <title>Muditha Kaushalya</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.7.1/gsap.min.js"></script>
-    <!-- Add Lucide Icons -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.js"></script>
-    <link rel="stylesheet" type="text/css" href="styles.css">
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-auth.js"></script>
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+    <link rel="stylesheet" type="text/css" href="Styles.css">
     <link rel="icon" href="favicon.png" type="image/png">
 </head>
 <body class="bg-gray-50">
-    <!-- Nav -->
-        <nav class="fixed w-full bg-white/80 backdrop-blur-md shadow-sm z-50">
+    <nav class="fixed w-full bg-white/80 backdrop-blur-md shadow-sm z-50">
+        <!-- Navigation Menu -->
         <div class="container mx-auto px-6 py-4">
             <div class="flex items-center justify-between">
                 <span class="text-2xl font-bold gradient-text">Muditha</span>
@@ -43,6 +44,11 @@
                     <a href="Projects.html" class="nav-link text-gray-600 hover:text-indigo-600">Projects</a>
                     <a href="About.html" class="nav-link text-gray-600 hover:text-indigo-600">About</a>
                     <a href="Contact.html" class="nav-link text-gray-600 hover:text-indigo-600">Contact</a>
+                    <a href="javascript:void(0);" onclick="toggleModal()" class="block text-gray-600 hover:text-indigo-600">Sign In</a>
+                    <a href="Account Center.html">
+                    <div id="navProfileContainer">
+                    <i class="fa-solid fa-user text-gray-600 text-2xl border-2 border-gray-600 p-2 w-10 h-10 flex items-center justify-center rounded-full"></i></div></a>
+                     <a href="javascript:void(0);" onclick="toggleSignUpModal()" class="nav-link text-gray-600 hover:text-indigo-600"></a>
                 </div>
 
                 <!-- Mobile Menu Button -->
@@ -77,9 +83,135 @@
                 <a href="Projects.html" class="block text-gray-600 hover:text-indigo-600">Projects</a>
                 <a href="About.html" class="block text-gray-600 hover:text-indigo-600">About</a>
                 <a href="Contact.html" class="block text-gray-600 hover:text-indigo-600">Contact</a>
+                <a href="javascript:void(0);" onclick="toggleModal()" class="block text-gray-600 hover:text-indigo-600">Sign In</a>
+                <a href="javascript:void(0);" onclick="toggleSignUpModal()" class="block text-gray-600 hover:text-indigo-600"></a>
+                <a href="Account Center.html" class="nav-link text-gray-600 hover:text-indigo-600">Your Account</a>
             </div>
         </div>
     </nav>
+
+    <!-- Sign-In Modal -->
+    <div id="signInModal" class="fixed inset-0 flex items-center justify-center hidden bg-black bg-opacity-50 z-50">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
+            <!-- Close Button -->
+            <button onclick="toggleModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Sign In</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="email">
+                        Email
+                    </label>
+                    <input id="email" type="email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Enter your email">
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
+                        Password
+                    </label>
+                    <input id="password" type="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Enter your password">
+                </div>
+                <button onclick="login()" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50">
+                    Sign In
+                </button>
+                <!-- Links -->
+                <div class="text-center mt-4 space-y-2">
+                    <a href="#" onclick="showPasswordResetModal()" class="block text-blue-500 hover:underline">Forgot Password?</a>
+                    <a href="#" onclick="switchToSignUp()" class="block text-blue-500 hover:underline">Don't have an account? Sign Up</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sign-Up Modal -->
+    <div id="signUpModal" class="fixed inset-0 flex items-center justify-center hidden bg-black bg-opacity-50 z-50">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
+            <!-- Close Button -->
+            <button onclick="toggleSignUpModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Sign Up</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="signupName">
+                        Full Name
+                    </label>
+                    <input id="signupName" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Enter your full name">
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="signupEmail">
+                        Email
+                    </label>
+                    <input id="signupEmail" type="email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Enter your email">
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="signupPassword">
+                        Password
+                    </label>
+                    <input id="signupPassword" type="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Enter your password">
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="confirmPassword">
+                        Confirm Password
+                    </label>
+                    <input id="confirmPassword" type="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Confirm your password">
+                </div>
+                <button onclick="signUp()" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-700 focus:ring-opacity-50">
+                    Sign Up
+                </button>
+                <div class="text-center mt-4">
+                    <p class="text-gray-600">Already have an account? 
+                        <a href="#" onclick="switchToSignIn()" class="text-blue-500 hover:underline">Sign In</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Reset Modal -->
+    <div id="passwordResetModal" class="fixed inset-0 flex items-center justify-center hidden bg-black bg-opacity-50 z-50">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
+            <!-- Close Button -->
+            <button onclick="hidePasswordResetModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Reset Password</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="resetEmail">
+                        Email
+                    </label>
+                    <input id="resetEmail" type="email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Enter your email">
+                </div>
+                <button onclick="resetPassword()" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50">
+                    Reset Password
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="alertModal" class="fixed inset-0 flex items-center justify-center hidden bg-black bg-opacity-50 z-50">
+        <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-gray-800">Message</h2>
+                <button onclick="hideAlert()" class="text-gray-500 hover:text-gray-800">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <p id="alertMessage" class="text-gray-700"></p>
+        </div>
+    </div>
 
 <!-- About Section -->
     <section id="about" class="py-20 bg-gray-100">
@@ -188,73 +320,298 @@
     </div>
 </footer>
 
-    <script>
-             document.addEventListener('DOMContentLoaded', function() {
-            // Mobile menu toggle
-            const menuBtn = document.getElementById('menuBtn');
-            const mobileMenu = document.getElementById('mobileMenu');
-            let isMenuOpen = false;
+<script>
+   // Firebase configuration
+    const firebaseConfig = {
+    apiKey: "AIzaSyC3vHKWQPYGgN5q2i1u_BBh0ApVFG_8KIs",
+    authDomain: "mudith-kaushalya-icbt.firebaseapp.com",
+    projectId: "mudith-kaushalya-icbt",
+    storageBucket: "mudith-kaushalya-icbt.firebasestorage.app",
+    messagingSenderId: "1042808523530",
+    appId: "1:1042808523530:web:17ea795d38e9867f6fc8f3",
+    measurementId: "G-53QCZRLTTN"
+};
 
-            menuBtn.addEventListener('click', function() {
-                isMenuOpen = !isMenuOpen;
-                mobileMenu.classList.toggle('hidden');
-            });
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
 
-            // Mobile dropdown functionality
-            const mobileDropdownBtns = document.querySelectorAll('.mobile-dropdown-btn');
-            
-            mobileDropdownBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    // Toggle the dropdown content
-                    const dropdownContent = this.nextElementSibling;
-                    dropdownContent.classList.toggle('hidden');
-                    
-                    // Rotate the arrow icon
-                    const arrow = this.querySelector('svg');
-                    arrow.classList.toggle('rotate-180');
-                });
-            });
+// DOM Elements
+document.addEventListener('DOMContentLoaded', function() {
+    // Mobile menu toggle
+    const menuBtn = document.getElementById('menuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    let isMenuOpen = false;
 
-            // Close mobile menu when clicking outside
-            document.addEventListener('click', function(event) {
-                const isClickInsideMenu = mobileMenu.contains(event.target);
-                const isClickOnMenuBtn = menuBtn.contains(event.target);
-                
-                if (!isClickInsideMenu && !isClickOnMenuBtn && isMenuOpen) {
-                    mobileMenu.classList.add('hidden');
-                    isMenuOpen = false;
-                }
-            });
+    menuBtn.addEventListener('click', function() {
+        isMenuOpen = !isMenuOpen;
+        mobileMenu.classList.toggle('hidden');
+    });
 
-            // Close mobile menu when clicking on a link
-            const mobileLinks = mobileMenu.getElementsByTagName('a');
-            for (let link of mobileLinks) {
-                link.addEventListener('click', function() {
-                    mobileMenu.classList.add('hidden');
-                    isMenuOpen = false;
-                });
-            }
-
-            // Handle desktop dropdown on touch devices
-            const dropdownButton = document.querySelector('.peer');
-            if (dropdownButton) {
-                dropdownButton.addEventListener('touchstart', function(e) {
-                    e.preventDefault();
-                    const dropdownContent = this.nextElementSibling;
-                    dropdownContent.classList.toggle('hidden');
-                });
-            }
-
-            // Close dropdown when clicking outside
-            document.addEventListener('click', function(e) {
-                const dropdowns = document.querySelectorAll('.peer ~ .peer-hover\\:block');
-                dropdowns.forEach(dropdown => {
-                    if (!dropdown.contains(e.target) && !e.target.matches('.peer')) {
-                        dropdown.classList.add('hidden');
-                    }
-                });
-            });
+    // Mobile dropdown functionality
+    const mobileDropdownBtns = document.querySelectorAll('.mobile-dropdown-btn');
+    mobileDropdownBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const dropdownContent = this.nextElementSibling;
+            dropdownContent.classList.toggle('hidden');
+            const arrow = this.querySelector('svg');
+            arrow.classList.toggle('rotate-180');
         });
-    </script>
+    });
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', function(event) {
+        const isClickInsideMenu = mobileMenu.contains(event.target);
+        const isClickOnMenuBtn = menuBtn.contains(event.target);
+        
+        if (!isClickInsideMenu && !isClickOnMenuBtn && isMenuOpen) {
+            mobileMenu.classList.add('hidden');
+            isMenuOpen = false;
+        }
+    });
+
+    // Close mobile menu when clicking on a link
+    const mobileLinks = mobileMenu.getElementsByTagName('a');
+    for (let link of mobileLinks) {
+        link.addEventListener('click', function() {
+            mobileMenu.classList.add('hidden');
+            isMenuOpen = false;
+        });
+    }
+});
+
+// Authentication State Observer
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        if (user.emailVerified) {
+            // User is signed in and email is verified
+            console.log('User is signed in and verified:', user.email);
+        } else {
+            // User is signed in but email is not verified
+            console.log('Please verify your email');
+        }
+    } else {
+        // User is signed out
+        console.log('User is signed out');
+    }
+});
+
+// Sign Up Function
+function signUp() {
+    const email = document.getElementById('signupEmail').value;
+    const password = document.getElementById('signupPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const name = document.getElementById('signupName').value;
+
+    // Form validation
+    if (!email || !password || !confirmPassword || !name) {
+        showAlert('Please fill in all fields.');
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        showAlert('Passwords do not match.');
+        return;
+    }
+
+    if (password.length < 6) {
+        showAlert('Password should be at least 6 characters long.');
+        return;
+    }
+
+    // Create user with email and password
+    auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            // Update user profile with name
+            return userCredential.user.updateProfile({
+                displayName: name
+            });
+        })
+        .then(() => {
+            // Send email verification
+            return auth.currentUser.sendEmailVerification();
+        })
+        .then(() => {
+            showAlert('Registration successful! Please check your email for verification.');
+            toggleSignUpModal();
+            
+            // Sign out the user until they verify their email
+            return auth.signOut();
+        })
+        .catch((error) => {
+            showAlert('Error: ' + error.message);
+        });
+}
+
+// Login Function
+function login() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    if (!email || !password) {
+        showAlert('Please enter both email and password.');
+        return;
+    }
+
+    auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            if (userCredential.user.emailVerified) {
+                window.location.href = "Assignments.html";
+                window.location.href = "Account Center.html";
+            } else {
+                auth.signOut();
+                showAlert('Please verify your email before signing in.');
+            }
+        })
+        .catch((error) => {
+            showAlert('Error: ' + error.message);
+        });
+}
+
+// Password Reset Function
+function resetPassword() {
+    const email = document.getElementById('resetEmail').value;
+    if (!email) {
+        showAlert("Please enter your email to reset your password.");
+        return;
+    }
+
+    auth.sendPasswordResetEmail(email)
+        .then(() => {
+            showAlert("Password reset email sent. Please check your inbox.");
+            hidePasswordResetModal();
+        })
+        .catch((error) => {
+            showAlert("Error: " + error.message);
+        });
+}
+
+// Sign Out Function
+function signOut() {
+    auth.signOut()
+        .then(() => {
+            window.location.href = "index.html";
+        })
+        .catch((error) => {
+            showAlert("Error signing out: " + error.message);
+        });
+}
+
+// UI Toggle Functions
+function toggleModal() {
+    const modal = document.getElementById('signInModal');
+    modal.classList.toggle('hidden');
+}
+
+function toggleSignUpModal() {
+    const modal = document.getElementById('signUpModal');
+    modal.classList.toggle('hidden');
+}
+
+function showPasswordResetModal() {
+    toggleModal(); // Close the sign-in modal
+    const passwordResetModal = document.getElementById('passwordResetModal');
+    passwordResetModal.classList.remove('hidden');
+}
+
+function hidePasswordResetModal() {
+    const passwordResetModal = document.getElementById('passwordResetModal');
+    passwordResetModal.classList.add('hidden');
+}
+
+function switchToSignUp() {
+    toggleModal(); // Hide sign-in modal
+    toggleSignUpModal(); // Show sign-up modal
+}
+
+function switchToSignIn() {
+    toggleSignUpModal(); // Hide sign-up modal
+    toggleModal(); // Show sign-in modal
+}
+
+// Alert Functions
+function showAlert(message) {
+    const alertModal = document.getElementById('alertModal');
+    const alertMessage = document.getElementById('alertMessage');
+    alertMessage.textContent = message;
+    alertModal.classList.remove('hidden');
+}
+
+function hideAlert() {
+    const alertModal = document.getElementById('alertModal');
+    alertModal.classList.add('hidden');
+}
+
+// Form Input Validation Functions
+function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
+
+function validatePassword(password) {
+    // Password must be at least 6 characters long
+    // You can add more password requirements here
+    return password.length >= 6;
+}
+
+// Helper Functions
+function clearFormInputs(formId) {
+    const form = document.getElementById(formId);
+    if (form) {
+        const inputs = form.getElementsByTagName('input');
+        for (let input of inputs) {
+            input.value = '';
+        }
+    }
+}
+
+// Function to update nav bar after sign in
+function updateNavBarAfterSignIn(user) {
+    const navProfileContainer = document.getElementById('navProfileContainer');
+    navProfileContainer.innerHTML = `
+        <div id="profileInitial" class="w-10 h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center text-2xl ">
+            ${user.email ? user.email[0].toUpperCase() : 'U'}
+        </div>
+    `;
+}
+
+// Function to update nav bar after sign out
+function updateNavBarAfterSignOut() {
+    const navProfileContainer = document.getElementById('navProfileContainer');
+    navProfileContainer.innerHTML = `
+        <a href="Account Center.html">
+            <i class="fa-solid fa-user text-gray-600 text-2xl border-2 border-gray-600 p-2 w-10 h-10 flex items-center justify-center rounded-full"></i>
+        </a>
+    `;
+}
+
+// Modify the authentication state change listener
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        if (user.emailVerified) {
+            updateNavBarAfterSignIn(user);
+            console.log('User is signed in and verified:', user.email);
+        } else {
+            updateNavBarAfterSignOut();
+            console.log('Please verify your email');
+        }
+    } else {
+        updateNavBarAfterSignOut();
+        console.log('User is signed out');
+    }
+});
+
+// Update the sign out function
+function signOut() {
+    auth.signOut()
+        .then(() => {
+            updateNavBarAfterSignOut();
+            window.location.href = "index.html";
+        })
+        .catch((error) => {
+            showAlert("Error signing out: " + error.message);
+        });
+}
+
+</script>
 </body>
-</html>

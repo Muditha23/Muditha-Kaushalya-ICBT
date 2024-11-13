@@ -306,7 +306,7 @@ function displayUserInfo(user) {
     const emailDisplay = document.getElementById('emailDisplay');
 
     // Get first letter of name for profile initial
-    const initials = user.displayName ? user.displayName.charAt(0).toUpperCase() : '?';
+    const initials = user.email ? user.email.charAt(0).toUpperCase() : '?';
     profileInitial_1.textContent = initials;
 
     // Display user details

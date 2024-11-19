@@ -429,7 +429,7 @@ function displayUserInfo(user) {
     const memberSince = document.getElementById('memberSince');
 
     // Get first letter of name for profile initial
-    const initials = user.displayName ? user.displayName.charAt(0).toUpperCase() : '?';
+    const initials = user.email ? user.email.charAt(0).toUpperCase() : '?';
     profileInitial_1.textContent = initials;
 
     // Display user details

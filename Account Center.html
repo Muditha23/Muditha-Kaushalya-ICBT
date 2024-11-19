@@ -16,10 +16,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js"></script>
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
-<link rel="shortcut icon" href="Images/Favicon.png" type="">
+
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col">
-body class="bg-gray-50">
     <nav class="fixed w-full bg-white/80 backdrop-blur-md shadow-sm z-50">
         <!-- Navigation Menu -->
         <div class="container mx-auto px-6 py-4">
@@ -220,55 +219,178 @@ body class="bg-gray-50">
     </div>
 
 
-<div class="flex-1 flex items-center justify-center">
-    <div id="accountContainer" class="bg-white shadow-lg rounded-lg p-8 w-full max-w-md">
-        <div class="flex flex-col items-center mb-6">
-            <div id="profileInitial_1" class="w-24 h-24 rounded-full bg-indigo-500 text-white flex items-center justify-center text-4xl font-bold mb-4"></div>
-            <h2 id="userName" class="text-2xl font-semibold text-gray-800"></h2>
-            <p id="userEmail" class="text-gray-600 mt-2"></p>
-        </div>
-
-        <div class="space-y-4">
-            <div class="bg-gray-50 p-4 rounded-md">
-                <h3 class="text-lg font-medium text-gray-700 mb-2">Account Details</h3>
-                <div class="space-y-2">
-                    <p><strong>Full Name:</strong> <span id="fullNameDisplay"></span></p>
-                    <p><strong>Email:</strong> <span id="emailDisplay"></span></p>
+<div class="flex-1 flex items-center justify-center bg-gray-100 p-4 md:p-6">
+    <div id="accountContainer" class="bg-white shadow-2xl rounded-xl w-full max-w-md md:max-w-3xl lg:max-w-4xl">
+        <!-- Mobile-Friendly Container -->
+        <div class="p-4 md:p-8">
+            <!-- Profile Section -->
+            <div class="flex flex-col items-center mb-6">
+                <div class="relative">
+                    <div id="profileInitial_1" class="w-24 h-24 md:w-28 md:h-28 rounded-full bg-indigo-500 text-white flex items-center justify-center text-2xl md:text-4xl font-bold mb-4 shadow-lg">
+                    </div>
                 </div>
+                <h2 id="userName" class="text-xl md:text-2xl font-bold text-gray-800 text-center"></h2>
+                <p id="userEmail" class="text-sm md:text-base text-gray-600 mt-1 text-center"></p>
             </div>
 
-            <div class="space-y-4">
-                <button onclick="changePassword()" class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition"><i class="fa-thin fa-key" text-white text-[15px]></i>
+            <!-- Scrollable Content for Mobile -->
+            <div class="space-y-4 max-h-[60vh] overflow-y-auto">
+                <!-- Account Details Section -->
+                <div class="bg-gray-50 p-4 rounded-md shadow-sm">
+                    <h3 class="text-base md:text-lg font-semibold text-gray-700 mb-3">Account Details</h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <strong class="text-sm md:text-base">Full Name:</strong> 
+                                <span id="fullNameDisplay" class="text-sm md:text-base"></span>
+                            </div>
+                            <button onclick="editProfile()" class="text-blue-500 hover:text-blue-600">
+                                <i class="fa-solid fa-edit text-sm md:text-base"></i>
+                            </button>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <strong class="text-sm md:text-base">Email:</strong> 
+                                <span id="emailDisplay" class="text-sm md:text-base"></span>
+                            </div>
+                            <button onclick="verifyEmail()" class="text-green-500 hover:text-green-600">
+                                <i class="fa-solid fa-check-circle text-sm md:text-base"></i>
+                            </button>
+                        </div>
+                        <div>
+                            <strong class="text-sm md:text-base">Member Since:</strong> 
+                            <span id="memberSince" class="text-sm md:text-base"></span>
+                        </div>
+                    </div>
+                </div>
 
-                    Change Password
-                </button>
+                <!-- Responsive Action Sections -->
+                <div class="space-y-4">
+                    <!-- Security Section -->
+                    <div class="bg-gray-50 p-4 rounded-md shadow-sm">
+                        <h3 class="text-base md:text-lg font-semibold text-gray-700 mb-3">Security</h3>
+                        <div class="space-y-2">
+                            <button onclick="changePassword()" class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition flex items-center justify-center">
+                                <i class="fa-solid fa-lock mr-2 text-sm"></i> 
+                                <span class="text-sm md:text-base">Change Password</span>
+                            </button>
+                        </div>
+                    </div>
 
-                <button onclick="signOut()" class="w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600 transition">
-                    <i class="fa-thin fa-arrow-right-from-bracket" text-white text-[15px]></i>
-                    Sign Out
-                </button>
-
-                <button onclick="deleteAccount()" class="w-full bg-gray-500 text-white py-2 rounded-md hover:bg-gray-600 transition">
-                    <i class="fa-thin fa-trash" text-white text-[15px]></i>
-                    Delete Account
-                </button>
+                    <!-- Danger Zone -->
+                    <div class="bg-red-50 p-4 rounded-md shadow-sm">
+                        <h3 class="text-base md:text-lg font-semibold text-red-700 mb-3">Danger Zone</h3>
+                        <div class="space-y-2">
+                            <button onclick="signOut()" class="w-full bg-red-500 text-white py-2 rounded-md hover:bg-red-600 transition flex items-center justify-center">
+                                <i class="fa-solid fa-sign-out-alt mr-2 text-sm"></i> 
+                                <span class="text-sm md:text-base">Sign Out</span>
+                            </button>
+                            <button onclick="deleteAccount()" class="w-full bg-gray-500 text-white py-2 rounded-md hover:bg-gray-600 transition flex items-center justify-center">
+                                <i class="fa-solid fa -trash mr-2 text-sm"></i> 
+                                <span class="text-sm md:text-base">Delete Account</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Confirmation Modal for Delete Account -->
-<div id="deleteConfirmModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-    <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full">
-        <h2 class="text-xl font-bold mb-4 text-red-600">Confirm Account Deletion</h2>
-        <p class="mb-4 text-gray-700">Are you sure you want to delete your account? This action cannot be undone.</p>
-        <div class="flex justify-between">
-            <button onclick="cancelDelete()" class="bg-gray-300 text-gray-700 px-4 py-2 rounded">Cancel</button>
-            <button onclick="confirmDeleteAccount()" class="bg-red-500 text-white px-4 py-2 rounded">Delete</button>
+    <!-- Modals (Responsive) -->
+    <!-- Delete Account Confirmation Modal -->
+    <div id="deleteConfirmModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white p-4 md:p-6 rounded-lg shadow-xl w-full max-w-sm">
+            <h2 class="text-lg md:text-xl font-bold mb-3 md:mb-4 text-red-600">Confirm Account Deletion</h2>
+            <p class="mb-3 md:mb-4 text-sm md:text-base text-gray-700">Are you sure you want to delete your account? This action cannot be undone.</p>
+            <div class="flex justify-between space-x-2">
+                <button onclick="cancelDelete()" class="flex-1 bg-gray-300 text-gray-700 px-3 py-2 md:px-4 md:py-2 rounded text-sm md:text-base">Cancel</button>
+                <button onclick="confirmDeleteAccount()" class="flex-1 bg-red-500 text-white px-3 py-2 md:px-4 md:py-2 rounded text-sm md:text-base">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="editProfileModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-white p-4 md:p-6 rounded-lg shadow-xl w-full max-w-md">
+            <h2 class="text-lg md:text-xl font-bold mb-3 md:mb-4 text-gray-800">Edit Profile</h2>
+            <form id="editProfileForm">
+                <div class="mb-3 md:mb-4">
+                    <label class="block text-gray-700 mb-2">Full Name</label>
+                    <input type="text" id="editFullName" class="w-full px-3 py-2 border rounded-md" required>
+                </div>
+                <div class="flex justify-between">
+                    <button type="button" onclick="cancelEditProfile()" class="bg-gray-300 text-gray-700 px-3 py-2 rounded text-sm md:text-base">Cancel</button>
+                    <button type="submit" class="bg-blue-500 text-white px-3 py-2 rounded text-sm md:text-base">Save Changes</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
-    <script>
+<script>
+    // Placeholder functions - you'll need to implement these
+    function uploadProfilePicture() {
+        // Implement profile picture upload logic
+        console.log('Upload Profile Picture');
+    }
+
+    function editProfile() {
+        // Show edit profile modal
+        document.getElementById('editProfileModal').classList.remove('hidden');
+        // Populate current values
+        document.getElementById('editFullName').value = document.getElementById('fullNameDisplay').textContent;
+    }
+
+    function cancelEditProfile() {
+        document.getElementById('editProfileModal').classList.add('hidden');
+    }
+
+    function verifyEmail() {
+        // Implement email verification logic
+        console.log('Verify Email');
+    }
+
+    function changePassword() {
+        // Show change password modal or navigate to change password page
+        console.log('Change Password');
+    }
+
+    function manageTwoFactor() {
+        // Implement two-factor authentication management
+        console.log('Manage Two-Factor Authentication');
+    }
+
+    function signOut() {
+        // Implement sign out logic
+        console.log('Sign Out');
+    }
+
+    function deleteAccount() {
+        // Show delete confirmation modal
+        document.getElementById('deleteConfirmModal').classList.remove('hidden');
+    }
+
+    function cancelDelete() {
+        // Hide delete confirmation modal
+        document.getElementById('deleteConfirmModal').classList.add('hidden');
+    }
+
+    function confirmDeleteAccount() {
+        // Implement account deletion logic
+        console.log('Account Deleted');
+        // Hide modal after deletion
+        cancelDelete();
+    }
+
+    document.getElementById('editProfileForm').onsubmit = function(event) {
+        event.preventDefault();
+        // Implement profile update logic
+        const newFullName = document.getElementById('editFullName').value;
+        document.getElementById('fullNameDisplay').textContent = newFullName;
+        cancelEditProfile();
+        console.log('Profile Updated');
+    };
+
         // Firebase Configuration
 const firebaseConfig = {
         apiKey: "AIzaSyC3vHKWQPYGgN5q2i1u_BBh0ApVFG_8KIs",
@@ -304,9 +426,10 @@ function displayUserInfo(user) {
     const userEmail = document.getElementById('userEmail');
     const fullNameDisplay = document.getElementById('fullNameDisplay');
     const emailDisplay = document.getElementById('emailDisplay');
+    const memberSince = document.getElementById('memberSince');
 
     // Get first letter of name for profile initial
-    const initials = user.email ? user.email.charAt(0).toUpperCase() : '?';
+    const initials = user.displayName ? user.displayName.charAt(0).toUpperCase() : '?';
     profileInitial_1.textContent = initials;
 
     // Display user details
@@ -314,6 +437,8 @@ function displayUserInfo(user) {
     userEmail.textContent = user.email;
     fullNameDisplay.textContent = user.displayName || 'Not provided';
     emailDisplay.textContent = user.email;
+
+      memberSince.textContent = new Date(user.metadata.creationTime).toLocaleDateString();
 }
 
 function changePassword() {
@@ -634,6 +759,26 @@ function signOut() {
             showAlert("Error signing out: " + error.message);
         });
 }
+
+document.getElementById('editProfileForm').onsubmit = function(event) {
+    event.preventDefault();
+    // Implement profile update logic
+    const newFullName = document.getElementById('editFullName').value;
+
+    // Update Firebase user profile
+    const user = firebase.auth().currentUser ;
+    user.updateProfile({
+        displayName: newFullName
+    }).then(() => {
+        // Update the displayed name in the UI
+        document.getElementById('fullNameDisplay').textContent = newFullName;
+        cancelEditProfile();
+        console.log('Profile Updated');
+    }).catch((error) => {
+        console.error('Error updating profile:', error);
+    });
+};
+
     </script>
 </body>
 </html>

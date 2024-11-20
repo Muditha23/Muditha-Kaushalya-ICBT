@@ -483,6 +483,51 @@ function confirmDeleteAccount() {
             alert('Error deleting account. Please try again.');
         });
 }
+function deleteAccount() {
+    // Create a new modal for password confirmation
+    const deleteConfirmModal = document.getElementById('deleteConfirmModal');
+    deleteConfirmModal.innerHTML = `
+        <div class="bg-white p-4 md:p-6 rounded-lg shadow-xl w-full max-w-sm">
+            <h2 class="text-lg md:text-xl font-bold mb-3 md:mb-4 text-red-600">Confirm Account Deletion</h2>
+            <p class="mb-3 md:mb-4 text-sm md:text-base text-gray-700">Please re-enter your password to confirm deletion:</p>
+            <input type="password" id="deletePasswordConfirm" class="w-full px-3 py-2 border rounded-md mb-3" placeholder="Enter your password">
+            <div class="flex justify-between space-x-2">
+                <button onclick="cancelDelete()" class="flex-1 bg-gray-300 text-gray-700 px-3 py-2 md:px-4 md:py-2 rounded text-sm md:text-base">Cancel</button>
+                <button onclick="confirmDeleteAccount()" class="flex-1 bg-red-500 text-white px-3 py-2 md:px-4 md:py-2 rounded text-sm md:text-base">Delete</button>
+            </div>
+        </div>
+    `;
+    deleteConfirmModal.classList.remove('hidden');
+}
+
+function confirmDeleteAccount() {
+    const user = auth.currentUser;
+    const passwordConfirm = document.getElementById('deletePasswordConfirm').value;
+
+    // Re-authenticate user before deleting account
+    const credential = firebase.auth.EmailAuthProvider.credential(
+        user.email, 
+        passwordConfirm
+    );
+
+    user.reauthenticateWithCredential(credential)
+        .then(() => {
+            // Password correct, proceed with account deletion
+            return user.delete();
+        })
+        .then(() => {
+            alert('Your account has been successfully deleted.');
+            window.location.href = 'index.html';
+        })
+        .catch((error) => {
+            if (error.code === 'auth/wrong-password') {
+                alert('Incorrect password. Account not deleted.');
+            } else {
+                console.error('Delete account error:', error);
+                alert('Error deleting account. Please try again.');
+            }
+        });
+}
 
 // DOM Elements
 document.addEventListener('DOMContentLoaded', function() {
@@ -597,7 +642,7 @@ function login() {
     const password = document.getElementById('password').value;
 
     if (!email || !password) {
-        showAlert('Please enter both email and password.');
+        showAlert('Please enter both email and password to log in.');
         return;
     }
 
@@ -607,11 +652,23 @@ function login() {
                 window.location.href = "Account Center.html";
             } else {
                 auth.signOut();
-                showAlert('Please verify your email before signing in.');
+                showAlert('Email not verified. Please check your inbox and verify your email address before logging in.');
             }
         })
         .catch((error) => {
-            showAlert('Error: ' + error.message);
+            switch(error.code) {
+                case 'auth/user-not-found':
+                    showAlert('No account found with this email. Please check your email or sign up.');
+                    break;
+                case 'auth/wrong-password':
+                    showAlert('Incorrect password. Please try again or reset your password.');
+                    break;
+                case 'auth/too-many-requests':
+                    showAlert('Too many login attempts. Please try again later or reset your password.');
+                    break;
+                default:
+                    showAlert('Login failed. Please try again.');
+            }
         });
 }
 

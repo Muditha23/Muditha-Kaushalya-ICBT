@@ -889,6 +889,7 @@ function performOperation(operation) {
     }
 }
 
+// Steps generation
 function generateMatrixTheorySteps(operation, matrixA, matrixB) {
     switch(operation) {
         case 'add':
@@ -943,7 +944,7 @@ function generateMatrixTheorySteps(operation, matrixA, matrixB) {
                 )
             };
 
-                case 'multiply':
+        case 'multiply':
             return {
                 operationName: 'Matrix Multiplication [A · B] Theory',
                 steps: [
@@ -1001,40 +1002,51 @@ function generateMatrixTheorySteps(operation, matrixA, matrixB) {
                 )
             };
 
-        case 'determinant':
-            return {
-                operationName: 'Matrix Determinant [Det(A)] Theory',
-                steps: [
-                    `[Determinant Fundamental Theory]`,
-                    `• Applicable Only: Square Matrices`,
-                    `• Definition: Scalar value representing linear transformation`,
-                    `• Computational Complexity: O(n!)`,
+         case 'determinant':
+        return {
+            operationName: 'Matrix Determinant [Det(A)] Theory',
+            steps: [
+                `[Determinant Fundamental Theory]`,
+                `• Applicable Only: Square Matrices`,
+                `• Definition: Scalar value representing linear transformation`,
+                `• Computational Complexity: O(n!)`,
+                '',
+                `[Matrix Properties]`,
+                `• Dimension: ${matrixA.length} × ${matrixA[0].length}`,
+                `• Determinant Calculation Method: Cofactor Expansion`,
+                '',
+                `[Calculation Strategies]`,
+                `• 2x2 Matrix: ad - bc method`,
+                `• 3x3 Matrix: Cofactor Expansion or Sarrus' Rule`,
+                `• Larger Matrices: Recursive Minor Determinant`,
+                '',
+                `[Computational Process]`
+            ].concat(
+                matrixA.length === 2 ? [
+                    `[2x2 Determinant Formula]: det(A) = (${matrixA[0][0]} * ${matrixA[1][1]}) - (${matrixA[0][1]} * ${matrixA[1][0]})`,
+                    `[Calculation]: ${matrixA[0][0]} * ${matrixA[1][1]} - ${matrixA[0][1]} * ${matrixA[1][0]}`
+                ] : matrixA.length === 3 ? [
+                    `[3x3 Determinant Calculation: Cofactor Expansion]`,
+                    `[First Row Cofactor Expansion]`,
+                    `det(A) = ${matrixA[0][0]} * [${matrixA[1][1]} * ${matrixA[2][2]} - ${matrixA[1][2]} * ${matrixA[2][1]}]`,
+                    `         - ${matrixA[0][1]} * [${matrixA[1][0]} * ${matrixA[2][2]} - ${matrixA[1][2]} * ${matrixA[2][0]}]`,
+                    `         + ${matrixA[0][2]} * [${matrixA[1][0]} * ${matrixA[2][1]} - ${matrixA[1][1]} * ${matrixA[2][0]}]`,
                     '',
-                    `[Matrix Properties]`,
-                    `• Dimension: ${matrixA.length} × ${matrixA[0].length}`,
-                    `• Determinant Calculation Method: Cofactor Expansion`,
+                    `[Detailed Calculation Steps]`,
+                    `• Minor 1: (${matrixA[1][1]} * ${matrixA[2][2]} - ${matrixA[1][2]} * ${matrixA[2][1]}) = ${matrixA[1][1] * matrixA[2][2] - matrixA[1][2] * matrixA[2][1]}`,
+                    `• Minor 2: (${matrixA[1][0]} * ${matrixA[2][2]} - ${matrixA[1][2]} * ${matrixA[2][0]}) = ${matrixA[1][0] * matrixA[2][2] - matrixA[1][2] * matrixA[2][0]}`,
+                    `• Minor 3: (${matrixA[1][0]} * ${matrixA[2][1]} - ${matrixA[1][1]} * ${matrixA[2][0]}) = ${matrixA[1][0] * matrixA[2][1] - matrixA[1][1] * matrixA[2][0]}`,
                     '',
-                    `[Calculation Strategies]`,
-                    `• 2x2 Matrix: ad - bc method`,
-                    `• 3x3 Matrix: Sarrus' Rule or Cofactor Expansion`,
-                    `• Larger Matrices: Recursive Minor Determinant`,
-                    '',
-                    `[Computational Process]`,
-                    `• Select optimal row/column for expansion`,
-                    `• Calculate signed minors`,
-                    `• Recursive or direct calculation`,
-                    '',
-                    `[Detailed Determinant Analysis]`,
-                    ...(matrixA.length === 2 ? [
-                        `[2x2 Determinant Formula]: det(A) = (${matrixA[0][0]} * ${matrixA[1][1]}) - (${matrixA[0][1]} * ${matrixA[1][0]})`,
-                        `[Calculation]: ${matrixA[0][0]} * ${matrixA[1][1]} - ${matrixA[0][1]} * ${matrixA[1][0]}`
-                    ] : [
-                        '[Expansion Strategy]: Recursive Cofactor Method',
-                        '[Minor Determinant Calculation]: Breaking into submatrices'
-                    ])
+                    `[Final Determinant Calculation]`,
+                    `det(A) = ${matrixA[0][0]} * (${matrixA[1][1] * matrixA[2][2] - matrixA[1][2] * matrixA[2][1]})`,
+                    `         - ${matrixA[0][1]} * (${matrixA[1][0] * matrixA[2][2] - matrixA[1][2] * matrixA[2][0]})`,
+                    `         + ${matrixA[0][2]} * (${matrixA[1][0] * matrixA[2][1] - matrixA[1][1] * matrixA[2][0]})`
+                ] : [
+                    '[Expansion Strategy]: Recursive Cofactor Method',
+                    '[Minor Determinant Calculation]: Breaking into submatrices'
                 ]
-            };
-
+            )
+        };
         default:
             return {
                 operationName: 'Undefined Matrix Operation',

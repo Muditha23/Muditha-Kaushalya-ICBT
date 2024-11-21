@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Muditha Kaushalya</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.7.1/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-auth.js"></script>
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+    <link rel="stylesheet" type="text/css" href="Styles.css">
+   <link rel="shortcut icon" href="Images/Favicon.png" type="">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+</head>
+<body class="bg-gray-50">
+        <nav class="fixed w-full bg-white/80 backdrop-blur-md shadow-sm z-50">
+        <!-- Navigation Menu -->
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <span class="text-2xl font-bold gradient-text">Muditha</span>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index.html" class="nav-link text-gray-600 hover:text-indigo-600">Home</a>
+                    
+                    <!-- Assignments Dropdown -->
+                    <div class="relative group">
+                        <button class="peer nav-link text-gray-600 hover:text-indigo-600 flex items-center">
+                            Assignments
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        
+                        <!-- Dropdown Content -->
+                        <div class="hidden hover:block peer-hover:block absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                            <a href="Assignments.html" class="block px-4 py-2 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600">Diploma</a>
+                            <a href="higher-diploma.html" class="block px-4 py-2 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600">Higher Diploma</a>
+                            <a href="degree.html" class="block px-4 py-2 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600">Degree</a>
+                        </div>
+                    </div>
+                    
+                    <a href="Projects.html" class="nav-link text-gray-600 hover:text-indigo-600">Projects</a>
+                    <a href="About.html" class="nav-link text-gray-600 hover:text-indigo-600">About</a>
+                    <a href="Contact.html" class="nav-link text-gray-600 hover:text-indigo-600">Contact</a>
+                    <a href="javascript:void(0);" onclick="toggleModal()" class="block text-gray-600 hover:text-indigo-600">Sign In</a>
+                    <a href="Account Center.html">
+                    <div id="navProfileContainer">
+                    <i class="fa-solid fa-user text-gray-600 text-2xl border-2 border-gray-600 p-2 w-10 h-10 flex items-center justify-center rounded-full"></i></div></a>
+                     <a href="javascript:void(0);" onclick="toggleSignUpModal()" class="nav-link text-gray-600 hover:text-indigo-600"></a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button class="md:hidden" id="menuBtn">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div class="md:hidden hidden" id="mobileMenu">
+            <div class="px-4 py-3 space-y-3">
+                <a href="index.html" class="block text-gray-600 hover:text-indigo-600">Home</a>
+                
+                <!-- Mobile Assignments Dropdown -->
+                <div class="space-y-2">
+                    <button class="mobile-dropdown-btn flex items-center text-gray-600 hover:text-indigo-600 w-full">
+                        <span>Assignments</span>
+                        <svg class="w-4 h-4 ml-1 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div class="mobile-dropdown-content hidden pl-4 space-y-2">
+                        <a href="Assignments.html" class="block text-gray-600 hover:text-indigo-600">Diploma</a>
+                        <a href="higher-diploma.html" class="block text-gray-600 hover:text-indigo-600">Higher Diploma</a>
+                        <a href="degree.html" class="block text-gray-600 hover:text-indigo-600">Degree</a>
+                    </div>
+                </div>
+                
+                <a href="Projects.html" class="block text-gray-600 hover:text-indigo-600">Projects</a>
+                <a href="About.html" class="block text-gray-600 hover:text-indigo-600">About</a>
+                <a href="Contact.html" class="block text-gray-600 hover:text-indigo-600">Contact</a>
+                <a href="javascript:void(0);" onclick="toggleModal()" class="block text-gray-600 hover:text-indigo-600">Sign In</a>
+                <a href="javascript:void(0);" onclick="toggleSignUpModal()" class="block text-gray-600 hover:text-indigo-600"></a>
+                <a href="Account Center.html" class="nav-link text-gray-600 hover:text-indigo-600">Your Account</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sign-In Modal -->
+    <div id="signInModal" class="fixed inset-0 flex items-center justify-center hidden bg-black bg-opacity-50 z-50">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
+            <!-- Close Button -->
+            <button onclick="toggleModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Sign In</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="email">
+                        Email
+                    </label>
+                    <input id="email" type="email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Enter your email">
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
+                        Password
+                    </label>
+                    <input id="password" type="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Enter your password">
+                </div>
+                <button onclick="login()" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50">
+                    Sign In
+                </button>
+                <!-- Links -->
+                <div class="text-center mt-4 space-y-2">
+                    <a href="#" onclick="showPasswordResetModal()" class="block text-blue-500 hover:underline">Forgot Password?</a>
+                    <a href="#" onclick="switchToSignUp()" class="block text-blue-500 hover:underline">Don't have an account? Sign Up</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sign-Up Modal -->
+    <div id="signUpModal" class="fixed inset-0 flex items-center justify-center hidden bg-black bg-opacity-50 z-50">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
+            <!-- Close Button -->
+            <button onclick="toggleSignUpModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Sign Up</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="signupName">
+                        Full Name
+                    </label>
+                    <input id="signupName" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Enter your full name">
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="signupEmail">
+                        Email
+                    </label>
+                    <input id="signupEmail" type="email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Enter your email">
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="signupPassword">
+                        Password
+                    </label>
+                    <input id="signupPassword" type="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Enter your password">
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="confirmPassword">
+                        Confirm Password
+                    </label>
+                    <input id="confirmPassword" type="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Confirm your password">
+                </div>
+                <button onclick="signUp()" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-700 focus:ring-opacity-50">
+                    Sign Up
+                </button>
+                <div class="text-center mt-4">
+                    <p class="text-gray-600">Already have an account? 
+                        <a href="#" onclick="switchToSignIn()" class="text-blue-500 hover:underline">Sign In</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Reset Modal -->
+    <div id="passwordResetModal" class="fixed inset-0 flex items-center justify-center hidden bg-black bg-opacity-50 z-50">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
+            <!-- Close Button -->
+            <button onclick="hidePasswordResetModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Reset Password</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="resetEmail">
+                        Email
+                    </label>
+                    <input id="resetEmail" type="email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Enter your email">
+                </div>
+                <button onclick="resetPassword()" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50">
+                    Reset Password
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="alertModal" class="fixed inset-0 flex items-center justify-center hidden bg-black bg-opacity-50 z-50">
+        <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-gray-800">Message</h2>
+                <button onclick="hideAlert()" class="text-gray-500 hover:text-gray-800">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <p id="alertMessage" class="text-gray-700"></p>
+        </div>
+    </div>
+    <section id="assignments" class="py-20 bg-gray-100">
+    <div class="bg-white shadow-lg rounded-lg p-8 w-full">
+        <h1 class="text-3xl font-bold text-center mb-6 text-blue-600">Matrix Solver Calculator</h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Matrix A Input -->
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <h2 class="text-xl font-semibold mb-4">Matrix A</h2>
+                <div id="matrix-a-inputs" class="grid grid-cols-3 gap-2">
+                    <!-- Matrix A inputs will be dynamically generated -->
+                </div>
+                <div class="mt-4">
+                    <label for="matrix-a-rows" class="block mb-2">Rows:</label>
+                    <input type="number" id="matrix-a-rows" min="1" max="5" value="3" 
+                           class="w-full p-2 border rounded" onchange="regenerateMatrixInputs('a')">
+                    <label for="matrix-a-cols" class="block mb-2 mt-2">Columns:</label>
+                    <input type="number" id="matrix-a-cols" min="1" max="5" value="3" 
+                           class="w-full p-2 border rounded" onchange="regenerateMatrixInputs('a')">
+                    <button onclick="regenerateMatrixInputs('a')" 
+                            class="mt-2 w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+                        Regenerate Matrix A
+                    </button>
+                </div>
+            </div>
+
+            <!-- Matrix B Input -->
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <h2 class="text-xl font-semibold mb-4">Matrix B</h2>
+                <div id="matrix-b-inputs" class="grid grid-cols-3 gap-2">
+                    <!-- Matrix B inputs will be dynamically generated -->
+                </div>
+                <div class="mt-4">
+                    <label for="matrix-b-rows" class="block mb-2">Rows:</label>
+                    <input type="number" id="matrix-b-rows" min="1" max="5" value="3" 
+                           class="w-full p-2 border rounded" onchange="regenerateMatrixInputs('b')">
+                    <label for="matrix-b-cols" class="block mb-2 mt-2">Columns:</label>
+                    <input type="number" id="matrix-b-cols" min="1" max="5" value="3" 
+                           class="w-full p-2 border rounded" onchange="regenerateMatrixInputs('b')">
+                    <button onclick="regenerateMatrixInputs('b')" 
+                            class="mt-2 w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">
+                        Regenerate Matrix B
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Operation Buttons -->
+        <div class="mt-6 grid grid-cols-2 md:grid-cols-5 gap-4">
+            <button onclick="performOperation('add')" 
+                    class="bg-green-500 text-white p-3 rounded hover:bg-green-600">
+                A + B
+            </button>
+            <button onclick="performOperation('subtract')" 
+                    class="bg-red-500 text-white p-3 rounded hover:bg-red-600">
+                A - B
+            </button>
+            <button onclick="performOperation('multiply')" 
+                    class="bg-purple-500 text-white p-3 rounded hover:bg-purple-600">
+                A · B
+            </button>
+            <button onclick="performOperation('multiplyReverse')" 
+                    class="bg-orange-500 text-white p-3 rounded hover:bg-orange-600">
+                B · A
+            </button>
+            <button onclick="performOperation('determinant')" 
+                    class="bg-indigo-500 text-white p-3 rounded hover:bg-indigo-600">
+                Det(A)
+            </button>
+        </div>
+
+        <!-- Results Display -->
+        <div id="results" class="mt-6 bg-blue-50 p-4 rounded-lg">
+            <h2 class="text-xl font-semibold mb-4">Results</h2>
+            <pre id="result-output" class="bg-blue-100 p-4 rounded border text-2xl font-mono text-blue-800 overflow-auto whitespace-pre-wrap">
+Select an operation to see results
+            </pre>
+        </div>
+    </div>
+</section>
+
+    <script>
+           // Firebase configuration
+    const firebaseConfig = {
+    apiKey: "AIzaSyC3vHKWQPYGgN5q2i1u_BBh0ApVFG_8KIs",
+    authDomain: "mudith-kaushalya-icbt.firebaseapp.com",
+    projectId: "mudith-kaushalya-icbt",
+    storageBucket: "mudith-kaushalya-icbt.firebasestorage.app",
+    messagingSenderId: "1042808523530",
+    appId: "1:1042808523530:web:17ea795d38e9867f6fc8f3",
+    measurementId: "G-53QCZRLTTN"
+};
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+// Add this at the top of your script section
+let isAuthCheckComplete = false;
+
+// Authentication check for Projects page
+function checkAuthForProjects() {
+    const currentPath = window.location.pathname;
+    const isProjectsPage = currentPath.toLowerCase().includes('projects.html');
+    
+    if (isProjectsPage) {
+        auth.onAuthStateChanged((user) => {
+            isAuthCheckComplete = true;
+            if (!user) {
+                // If not signed in and trying to access Projects page, show sign in modal
+                toggleModal();
+                
+                // Add event listener to modal close button
+                const closeButtons = document.querySelectorAll('[onclick="toggleModal()"]');
+                closeButtons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        if (!auth.currentUser) {
+                            window.location.href = 'index.html';
+                        }
+                    });
+                });
+            }
+        });
+    }
+}
+
+// Modify the login function to handle Projects page redirect
+function login() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    if (!email || !password) {
+        showAlert('Please enter both email and password.');
+        return;
+    }
+
+    auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            if (userCredential.user.emailVerified) {
+                toggleModal(); // Hide the sign-in modal
+                
+                // Check if we're on or trying to access the Projects page
+                const currentPath = window.location.pathname;
+                const isProjectsPage = currentPath.toLowerCase().includes('projects.html');
+                
+                if (isProjectsPage) {
+                    // Stay on Projects page if that's where we are
+                    window.location.reload();
+                } else {
+                    // Otherwise, redirect to Projects page
+                    window.location.href = "projects.html";
+                }
+            } else {
+                auth.signOut();
+                showAlert('Please verify your email before signing in.');
+            }
+        })
+        .catch((error) => {
+            showAlert('Error: ' + error.message);
+        });
+}
+
+// Add protection to Projects page links
+function setupProjectsLinks() {
+    const projectsLinks = document.querySelectorAll('a[href*="projects.html"]');
+    projectsLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            if (!auth.currentUser) {
+                e.preventDefault();
+                toggleModal();
+            }
+        });
+    });
+}
+
+// Initialize these checks when the document loads
+document.addEventListener('DOMContentLoaded', () => {
+    checkAuthForProjects();
+    setupProjectsLinks();
+});
+
+// DOM Elements
+document.addEventListener('DOMContentLoaded', function() {
+    // Mobile menu toggle
+    const menuBtn = document.getElementById('menuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    let isMenuOpen = false;
+
+    menuBtn.addEventListener('click', function() {
+        isMenuOpen = !isMenuOpen;
+        mobileMenu.classList.toggle('hidden');
+    });
+
+    // Mobile dropdown functionality
+    const mobileDropdownBtns = document.querySelectorAll('.mobile-dropdown-btn');
+    mobileDropdownBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const dropdownContent = this.nextElementSibling;
+            dropdownContent.classList.toggle('hidden');
+            const arrow = this.querySelector('svg');
+            arrow.classList.toggle('rotate-180');
+        });
+    });
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', function(event) {
+        const isClickInsideMenu = mobileMenu.contains(event.target);
+        const isClickOnMenuBtn = menuBtn.contains(event.target);
+        
+        if (!isClickInsideMenu && !isClickOnMenuBtn && isMenuOpen) {
+            mobileMenu.classList.add('hidden');
+            isMenuOpen = false;
+        }
+    });
+
+    // Close mobile menu when clicking on a link
+    const mobileLinks = mobileMenu.getElementsByTagName('a');
+    for (let link of mobileLinks) {
+        link.addEventListener('click', function() {
+            mobileMenu.classList.add('hidden');
+            isMenuOpen = false;
+        });
+    }
+});
+
+// Authentication State Observer
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        if (user.emailVerified) {
+            // User is signed in and email is verified
+            console.log('User is signed in and verified:', user.email);
+        } else {
+            // User is signed in but email is not verified
+            console.log('Please verify your email');
+        }
+    } else {
+        // User is signed out
+        console.log('User is signed out');
+    }
+});
+
+// Sign Up Function
+function signUp() {
+    const email = document.getElementById('signupEmail').value;
+    const password = document.getElementById('signupPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const name = document.getElementById('signupName').value;
+
+    // Form validation
+    if (!email || !password || !confirmPassword || !name) {
+        showAlert('Please fill in all fields.');
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        showAlert('Passwords do not match.');
+        return;
+    }
+
+    if (password.length < 6) {
+        showAlert('Password should be at least 6 characters long.');
+        return;
+    }
+
+    // Create user with email and password
+    auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            // Update user profile with name
+            return userCredential.user.updateProfile({
+                displayName: name
+            });
+        })
+        .then(() => {
+            // Send email verification
+            return auth.currentUser.sendEmailVerification();
+        })
+        .then(() => {
+            showAlert('Registration successful! Please check your email for verification.');
+            toggleSignUpModal();
+            
+            // Sign out the user until they verify their email
+            return auth.signOut();
+        })
+        .catch((error) => {
+            showAlert('Error: ' + error.message);
+        });
+}
+
+// Login Function
+function login() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    if (!email || !password) {
+        showAlert('Please enter both email and password.');
+        return;
+    }
+
+    auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            if (userCredential.user.emailVerified) {
+                window.location.href = "Assignments.html";
+                window.location.href = "Account Center.html";
+            } else {
+                auth.signOut();
+                showAlert('Please verify your email before signing in.');
+            }
+        })
+        .catch((error) => {
+            showAlert('Error: ' + error.message);
+        });
+}
+
+// Password Reset Function
+function resetPassword() {
+    const email = document.getElementById('resetEmail').value;
+    if (!email) {
+        showAlert("Please enter your email to reset your password.");
+        return;
+    }
+
+    auth.sendPasswordResetEmail(email)
+        .then(() => {
+            showAlert("Password reset email sent. Please check your inbox.");
+            hidePasswordResetModal();
+        })
+        .catch((error) => {
+            showAlert("Error: " + error.message);
+        });
+}
+
+// Sign Out Function
+function signOut() {
+    auth.signOut()
+        .then(() => {
+            window.location.href = "index.html";
+        })
+        .catch((error) => {
+            showAlert("Error signing out: " + error.message);
+        });
+}
+
+// UI Toggle Functions
+function toggleModal() {
+    const modal = document.getElementById('signInModal');
+    modal.classList.toggle('hidden');
+}
+
+function toggleSignUpModal() {
+    const modal = document.getElementById('signUpModal');
+    modal.classList.toggle('hidden');
+}
+
+function showPasswordResetModal() {
+    toggleModal(); // Close the sign-in modal
+    const passwordResetModal = document.getElementById('passwordResetModal');
+    passwordResetModal.classList.remove('hidden');
+}
+
+function hidePasswordResetModal() {
+    const passwordResetModal = document.getElementById('passwordResetModal');
+    passwordResetModal.classList.add('hidden');
+}
+
+function switchToSignUp() {
+    toggleModal(); // Hide sign-in modal
+    toggleSignUpModal(); // Show sign-up modal
+}
+
+function switchToSignIn() {
+    toggleSignUpModal(); // Hide sign-up modal
+    toggleModal(); // Show sign-in modal
+}
+
+// Alert Functions
+function showAlert(message) {
+    const alertModal = document.getElementById('alertModal');
+    const alertMessage = document.getElementById('alertMessage');
+    alertMessage.textContent = message;
+    alertModal.classList.remove('hidden');
+}
+
+function hideAlert() {
+    const alertModal = document.getElementById('alertModal');
+    alertModal.classList.add('hidden');
+}
+
+// Form Input Validation Functions
+function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
+
+function validatePassword(password) {
+    // Password must be at least 6 characters long
+    // You can add more password requirements here
+    return password.length >= 6;
+}
+
+// Helper Functions
+function clearFormInputs(formId) {
+    const form = document.getElementById(formId);
+    if (form) {
+        const inputs = form.getElementsByTagName('input');
+        for (let input of inputs) {
+            input.value = '';
+        }
+    }
+}
+
+// Function to update nav bar after sign in
+function updateNavBarAfterSignIn(user) {
+    const navProfileContainer = document.getElementById('navProfileContainer');
+    navProfileContainer.innerHTML = `
+        <div id="profileInitial" class="w-10 h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center text-2xl ">
+            ${user.email ? user.email[0].toUpperCase() : 'U'}
+        </div>
+    `;
+}
+
+// Function to update nav bar after sign out
+function updateNavBarAfterSignOut() {
+    const navProfileContainer = document.getElementById('navProfileContainer');
+    navProfileContainer.innerHTML = `
+        <a href="Account Center.html">
+            <i class="fa-solid fa-user text-gray-600 text-2xl border-2 border-gray-600 p-2 w-10 h-10 flex items-center justify-center rounded-full"></i>
+        </a>
+    `;
+}
+
+// Modify the authentication state change listener
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        if (user.emailVerified) {
+            updateNavBarAfterSignIn(user);
+            console.log('User is signed in and verified:', user.email);
+        } else {
+            updateNavBarAfterSignOut();
+            console.log('Please verify your email');
+        }
+    } else {
+        updateNavBarAfterSignOut();
+        console.log('User is signed out');
+    }
+});
+
+// Update the sign out function
+function signOut() {
+    auth.signOut()
+        .then(() => {
+            updateNavBarAfterSignOut();
+            window.location.href = "index.html";
+        })
+        .catch((error) => {
+            showAlert("Error signing out: " + error.message);
+        });
+}
+        // Recursive function to calculate determinant
+        function calculateDeterminant(matrix) {
+            // Base cases
+            if (matrix.length === 1) return matrix[0][0];
+            if (matrix.length === 2) {
+                return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
+            }
+
+            let det = 0;
+            for (let i = 0; i < matrix.length; i++) {
+                // Create submatrix
+                const subMatrix = matrix.slice(1).map(row => 
+                    row.filter((_, j) => j !== i)
+                );
+
+                // Calculate determinant recursively
+                det += Math.pow(-1, i) * matrix[0][i] * calculateDeterminant(subMatrix);
+            }
+            return det;
+        }
+
+        // Initialize matrix inputs on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            regenerateMatrixInputs('a');
+            regenerateMatrixInputs('b');
+        });
+
+        function regenerateMatrixInputs(matrixType) {
+            const rowsInput = document.getElementById(`matrix-${matrixType}-rows`);
+            const colsInput = document.getElementById(`matrix-${matrixType}-cols`);
+            const containerInput = document.getElementById(`matrix-${matrixType}-inputs`);
+
+            const rows = parseInt(rowsInput.value);
+            const cols = parseInt(colsInput.value);
+
+            // Ensure square matrix for determinant
+            if (rows !== cols) {
+                rowsInput.value = rows;
+                colsInput.value = rows;
+            }
+
+            // Clear existing inputs
+            containerInput.innerHTML = '';
+            containerInput.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+
+            // Generate input grid
+            for (let i = 0; i < rows * cols; i++) {
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.className = 'border p-1 text-center';
+                input.placeholder = `M${matrixType.toUpperCase()}${Math.floor(i/cols)},${i%cols}`;
+                containerInput.appendChild(input);
+            }
+        }
+
+        function getMatrixData(matrixType) {
+            const rowsInput = document.getElementById(`matrix-${matrixType}-rows`);
+            const colsInput = document.getElementById(`matrix-${matrixType}-cols`);
+            const inputs = document.querySelectorAll(`#matrix-${matrixType}-inputs input`);
+
+            const rows = parseInt(rowsInput.value);
+            const cols = parseInt(colsInput.value);
+
+            const matrix = [];
+            for (let i = 0; i < rows; i++) {
+                const row = [];
+                for (let j = 0; j < cols; j++) {
+                    const value = parseFloat(inputs[i * cols + j].value) || 0;
+                    row.push(value);
+                }
+                matrix.push(row);
+            }
+
+            return matrix;
+        }
+
+        function performOperation(operation) {
+            const matrixA = getMatrixData('a');
+            const matrixB = getMatrixData('b');
+            const resultOutput = document.getElementById('result-output');
+
+            try {
+                let result;
+                switch(operation) {
+                    case 'add':
+                        result = math.add(matrixA, matrixB);
+                        resultOutput.textContent = 'Result (A + B):\n' + 
+                            result.map(row => row.map(val => Math.round(val)).join('\t')).join('\n');
+                        break;
+                    case 'subtract':
+                        result = math.subtract(matrixA, matrixB);
+                        resultOutput.textContent = 'Result (A - B):\n' + 
+                            result.map(row => row.map(val => Math.round(val)).join('\t')).join('\n');
+                        break;
+                    case 'multiply':
+                        result = math.multiply(matrixA, matrixB);
+                        resultOutput.textContent = 'Result (A · B):\n' + 
+                            result.map(row => row.map(val => Math.round(val)).join('\t')).join('\n');
+                        break;
+                    case 'multiplyReverse':
+                        result = math.multiply(matrixB, matrixA);
+                        resultOutput.textContent = 'Result (B · A):\n' + 
+                            result.map(row => row.map(val => Math.round(val)).join('\t')).join('\n');
+                        break;
+                    case 'determinant':
+                        // Ensure matrix is square
+                        if (matrixA.length !== matrixA[0].length) {
+                            throw new Error('Determinant requires a square matrix');
+                        }
+                        const det = calculateDeterminant(matrixA);
+                        resultOutput.textContent = `Determinant of Matrix A:\n${Math.round(det)}`;
+                        break;
+                }
+            } catch (error) {
+                resultOutput.textContent = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

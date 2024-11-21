@@ -943,7 +943,7 @@ function generateMatrixTheorySteps(operation, matrixA, matrixB) {
                 )
             };
 
-        case 'multiply':
+                case 'multiply':
             return {
                 operationName: 'Matrix Multiplication [A · B] Theory',
                 steps: [
@@ -966,7 +966,7 @@ function generateMatrixTheorySteps(operation, matrixA, matrixB) {
                 ].concat(
                     matrixA.map((row, i) => 
                         `[Row ${i+1}]: ${row.map((val, k) => 
-                            `{[${row.map((v, idx) => `${v}*${matrixB[idx][k]}`).join(' + ')}] = ${row.reduce((sum, v, idx) => sum + v * matrixB[idx][k], 0)}}`
+                            `[${row.map((v, idx) => `${v}*${matrixB[idx][k]}`).join(' + ')}] = ${row.reduce((sum, v, idx) => sum + v * matrixB[idx][k], 0)}`
                         ).join(', ')}`
                     )
                 )
@@ -995,7 +995,7 @@ function generateMatrixTheorySteps(operation, matrixA, matrixB) {
                 ].concat(
                     matrixB.map((row, i) => 
                         `[Row ${i+1}]: ${row.map((val, k) => 
-                            `{[${row.map((v, idx) => `${v}*${matrixA[idx][k]}`).join(' + ')}] = ${row.reduce((sum, v, idx) => sum + v * matrixA[idx][k], 0)}}`
+                            `[${row.map((v, idx) => `${v}*${matrixA[idx][k]}`).join(' + ')}] = ${row.reduce((sum, v, idx) => sum + v * matrixA[idx][k], 0)}`
                         ).join(', ')}`
                     )
                 )

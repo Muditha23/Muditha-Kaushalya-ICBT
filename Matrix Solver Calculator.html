@@ -889,6 +889,227 @@ function performOperation(operation) {
     }
 }
 
+function generateMatrixTheorySteps(operation, matrixA, matrixB) {
+    switch(operation) {
+        case 'add':
+            return {
+                operationName: 'Matrix Addition [A + B] Theory',
+                steps: [
+                    `[Matrix Addition Fundamental Theory]`,
+                    `• Condition: Matrices must have identical (m × n) dimensions`,
+                    `• Operation Domain: Element-wise addition`,
+                    `• Mathematical Representation: C[i,j] = A[i,j] + B[i,j]`,
+                    '',
+                    `[Dimensional Verification]`,
+                    `• Matrix A: ${matrixA.length} × ${matrixA[0].length}`,
+                    `• Matrix B: ${matrixB.length} × ${matrixB[0].length}`,
+                    '',
+                    `[Computational Process]`,
+                    `• Initialize Result Matrix: C = Zero Matrix of same dimensions`,
+                    `• Iterate through each matrix element`,
+                    `• Perform pairwise addition`,
+                    '',
+                    `[Detailed Element Calculation]`
+                ].concat(
+                    matrixA.map((row, i) => 
+                        `[Row ${i+1}]: ${row.map((val, j) => `{${val} + ${matrixB[i][j]} = ${val + matrixB[i][j]}}`).join(', ')}`
+                    )
+                )
+            };
+
+        case 'subtract':
+            return {
+                operationName: 'Matrix Subtraction [A - B] Theory',
+                steps: [
+                    `[Matrix Subtraction Fundamental Theory]`,
+                    `• Condition: Matrices must have identical (m × n) dimensions`,
+                    `• Operation Domain: Element-wise subtraction`,
+                    `• Mathematical Representation: C[i,j] = A[i,j] - B[i,j]`,
+                    '',
+                    `[Dimensional Verification]`,
+                    `• Matrix A: ${matrixA.length} × ${matrixA[0].length}`,
+                    `• Matrix B: ${matrixB.length} × ${matrixB[0].length}`,
+                    '',
+                    `[Computational Process]`,
+                    `• Initialize Result Matrix: C = Zero Matrix of same dimensions`,
+                    `• Iterate through each matrix element`,
+                    `• Perform pairwise subtraction`,
+                    '',
+                    `[Detailed Element Calculation]`
+                ].concat(
+                    matrixA.map((row, i) => 
+                        `[Row ${i+1}]: ${row.map((val, j) => `{${val} - ${matrixB[i][j]} = ${val - matrixB[i][j]}}`).join(', ')}`
+                    )
+                )
+            };
+
+        case 'multiply':
+            return {
+                operationName: 'Matrix Multiplication [A · B] Theory',
+                steps: [
+                    `[Matrix Multiplication Fundamental Theory]`,
+                    `• Condition: A columns must equal B rows`,
+                    `• Resulting Matrix: (m × p) where m = A rows, p = B columns`,
+                    `• Mathematical Representation: C[i,j] = Σ(A[i,k] * B[k,j])`,
+                    '',
+                    `[Dimensional Compatibility]`,
+                    `• Matrix A: ${matrixA.length} × ${matrixA[0].length}`,
+                    `• Matrix B: ${matrixB.length} × ${matrixB[0].length}`,
+                    `• Resulting Matrix: ${matrixA.length} × ${matrixB[0].length}`,
+                    '',
+                    `[Computational Strategy]`,
+                    `• Use Dot Product Method`,
+                    `• Multiply each row of A with each column of B`,
+                    `• Sum the pairwise products`,
+                    '',
+                    `[Detailed Multiplication Demonstration]`
+                ].concat(
+                    matrixA.map((row, i) => 
+                        `[Row ${i+1}]: ${row.map((val, k) => 
+                            `{Elements: [${row.map((v, idx) => `${v}*${matrixB[idx][k]}`).join(' + ')}] = ${row.reduce((sum, v, idx) => sum + v * matrixB[idx][k], 0)}}`
+                        ).join(', ')}`
+                    )
+                )
+            };
+
+        case 'multiplyReverse':
+            return {
+                operationName: 'Matrix Multiplication [B · A] Theory',
+                steps: [
+                    `[Matrix Multiplication Fundamental Theory]`,
+                    `• Condition: B columns must equal A rows`,
+                    `• Resulting Matrix: (q × n) where q = B rows, n = A columns`,
+                    `• Mathematical Representation: C[i,j] = Σ(B[i,k] * A[k,j])`,
+                    '',
+                    `[Dimensional Compatibility]`,
+                    `• Matrix B: ${matrixB.length} × ${matrixB[0].length}`,
+                    `• Matrix A: ${matrixA.length} × ${matrixA[0].length}`,
+                    `• Resulting Matrix: ${matrixB.length} × ${matrixA[0].length}`,
+                    '',
+                    `[Computational Strategy]`,
+                    `• Use Dot Product Method`,
+                    `• Multiply each row of B with each column of A`,
+                    `• Sum the pairwise products`,
+                    '',
+                    `[Detailed Multiplication Demonstration]`
+                ].concat(
+                    matrixB.map((row, i) => 
+                        `[Row ${i+1}]: ${row.map((val, k) => 
+                            `{Elements: [${row.map((v, idx) => `${v}*${matrixA[idx][k]}`).join(' + ')}] = ${row.reduce((sum, v, idx) => sum + v * matrixA[idx][k], 0)}}`
+                        ).join(', ')}`
+                    )
+                )
+            };
+
+        case 'determinant':
+            return {
+                operationName: 'Matrix Determinant [Det(A)] Theory',
+                steps: [
+                    `[Determinant Fundamental Theory]`,
+                    `• Applicable Only: Square Matrices`,
+                    `• Definition: Scalar value representing linear transformation`,
+                    `• Computational Complexity: O(n!)`,
+                    '',
+                    `[Matrix Properties]`,
+                    `• Dimension: ${matrixA.length} × ${matrixA[0].length}`,
+                    `• Determinant Calculation Method: Cofactor Expansion`,
+                    '',
+                    `[Calculation Strategies]`,
+                    `• 2x2 Matrix: ad - bc method`,
+                    `• 3x3 Matrix: Sarrus' Rule or Cofactor Expansion`,
+                    `• Larger Matrices: Recursive Minor Determinant`,
+                    '',
+                    `[Computational Process]`,
+                    `• Select optimal row/column for expansion`,
+                    `• Calculate signed minors`,
+                    `• Recursive or direct calculation`,
+                    '',
+                    `[Detailed Determinant Analysis]`,
+                    ...(matrixA.length === 2 ? [
+                        `[2x2 Determinant Formula]: det(A) = (${matrixA[0][0]} * ${matrixA[1][1]}) - (${matrixA[0][1]} * ${matrixA[1][0]})`,
+                        `[Calculation]: ${matrixA[0][0]} * ${matrixA[1][1]} - ${matrixA[0][1]} * ${matrixA[1][0]}`
+                    ] : [
+                        '[Expansion Strategy]: Recursive Cofactor Method',
+                        '[Minor Determinant Calculation]: Breaking into submatrices'
+                    ])
+                ]
+            };
+
+        default:
+            return {
+                operationName: 'Undefined Matrix Operation',
+                steps: ['[No Theoretical Steps Available]']
+            };
+    }
+}
+
+function performOperation(operation) {
+    const matrixA = getMatrixData('a');
+    const matrixB = getMatrixData('b');
+    const resultOutput = document.getElementById('result-output');
+    const stepsOutput = document.getElementById('steps-output');
+
+    try {
+        let result;
+        let detailedSteps;
+
+        switch(operation) {
+            case 'add':
+                if (matrixA.length !== matrixB.length || matrixA[0].length !== matrixB[0].length) {
+                    throw new Error('Matrices must have the same dimensions for addition');
+                }
+                result = math.add(matrixA, matrixB);
+                detailedSteps = generateMatrixTheorySteps('add', matrixA, matrixB);
+                break;
+            case 'subtract':
+                if (matrixA.length !== matrixB.length || matrixA[0].length !== matrixB[0].length) {
+                    throw new Error('Matrices must have the same dimensions for subtraction');
+                }
+                result = math.subtract(matrixA, matrixB);
+                detailedSteps = generateMatrixTheorySteps('subtract', matrixA, matrixB);
+                break;
+            case 'multiply':
+                if (matrixA[0].length !== matrixB.length) {
+                    throw new Error(`Cannot multiply matrices. A columns (${matrixA[0].length}) must match B rows (${matrixB.length})`);
+                }
+                result = math.multiply(matrixA, matrixB);
+                detailedSteps = generateMatrixTheorySteps('multiply', matrixA, matrixB);
+                break;
+            case 'multiplyReverse':
+                if (matrixB[0].length !== matrixA.length) {
+                    throw new Error(`Cannot multiply matrices. B columns (${matrixB[0].length}) must match A rows (${matrixA.length})`);
+                }
+                result = math.multiply(matrixB, matrixA);
+                detailedSteps = generateMatrixTheorySteps('multiplyReverse', matrixA, matrixB);
+                break;
+            case 'determinant':
+                if (matrixA.length !== matrixA[0].length) {
+                    throw new Error('Determinant requires a square matrix');
+                }
+                const det = math.det(matrixA);
+                detailedSteps = generateMatrixTheorySteps('determinant', matrixA, matrixB);
+                result = det;
+                break;
+        }
+        
+        // Format and display result
+        if (Array.isArray(result)) {
+            const formattedResult = result.map(row => 
+                row.map(val => parseInt(val).toString().padStart(6)).join('  ')
+            ).join('\n');
+            resultOutput.textContent = `${detailedSteps.operationName}:\n${formattedResult}`;
+        } else {
+            resultOutput.textContent = `${detailedSteps.operationName}:\n${parseInt(result)}`;
+        }
+        
+        // Update steps display
+        stepsOutput.innerHTML = detailedSteps.steps.join('<br>');
+    } catch (error) {
+        resultOutput.textContent = `Error: ${error.message}`;
+        stepsOutput.textContent = '[No Solution Steps Available]';
+    }
+}
+
 // Clear all matrices and reset displays
 function clearMatrices() {
     const matrixAInputs = document.querySelectorAll('#matrix-a-inputs input');

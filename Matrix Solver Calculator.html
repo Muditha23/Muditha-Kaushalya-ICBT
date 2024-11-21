@@ -320,25 +320,6 @@ Select an operation to see results
             </div>
         </div>
     </div>
-        <input type="number" 
-       inputmode="numeric" 
-       pattern="[0-9]*"
-       id="matrix-a-rows" 
-       min="1" 
-       max="5" 
-       value="3" 
-       class="w-24 p-2 text-xl border-2 rounded-lg mr-4" 
-       onchange="regenerateMatrixInputs('a')">
-
-<input type="number" 
-       inputmode="numeric" 
-       pattern="[0-9]*"
-       id="matrix-a-cols" 
-       min="1" 
-       max="5" 
-       value="3" 
-       class="w-24 p-2 text-xl border-2 rounded-lg" 
-       onchange="regenerateMatrixInputs('a')">
 </section>
 
     <script>
@@ -931,19 +912,6 @@ document.addEventListener('DOMContentLoaded', () => {
     regenerateMatrixInputs('a');
     regenerateMatrixInputs('b');
 });
-        // In the regenerateMatrixInputs function, modify the input creation
-function regenerateMatrixInputs(matrixType) {
-    // ... existing code ...
-    for (let i = 0; i < rows * cols; i++) {
-        const input = document.createElement('input');
-        input.type = 'number';
-        input.inputMode = 'numeric';
-        input.pattern = '[0-9]*';
-        input.className = 'border-2 p-2 text-center text-lg w-full rounded-lg';
-        input.addEventListener('input', () => updateMatrixDisplay(matrixType));
-        containerInput.appendChild(input);
-    }
-}
     </script>
 </body>
 </html>

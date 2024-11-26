@@ -217,12 +217,12 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8">
         <h1 class="text-3xl font-bold mb-6 text-center text-blue-600">Number System Conversion & Calculation Calculator</h1>
         
-        <!-- Conversion Section (Previous Conversion Code Remains the Same) -->
+        <!-- Conversion Section -->
         <div class="mb-8">
             <h2 class="text-2xl font-semibold mb-4 text-blue-500">Number Conversion</h2>
             <div class="grid grid-cols-2 gap-4 mb-4">
                 <div>
-                    <label class="block text-gray-700 font-bold mb-2">From Number Base</label>
+                    <label class="block text-gray-700 font-bold mb-2">From</label>
                     <select id="fromSystem" class="w-full p-2 border rounded">
                         <option value="binary">Binary</option>
                         <option value="decimal" selected>Decimal</option>
@@ -231,7 +231,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-gray-700 font-bold mb-2">To Number Base</label>
+                    <label class="block text-gray-700 font-bold mb-2">To</label>
                     <select id="toSystem" class="w-full p-2 border rounded">
                         <option value="decimal" selected>Decimal</option>
                         <option value="binary">Binary</option>
@@ -269,7 +269,7 @@
             <h2 class="text-2xl font-semibold mb-4 text-blue-500">Number System Calculations</h2>
             <div class="grid grid-cols-3 gap-4 mb-4">
                 <div>
-                    <label class="block text-gray-700 font-bold mb-2">Select Number Base</label>
+                    <label class="block text-gray-700 font-bold mb-2">Select Base</label>
                     <select id="num1System" class="w-full p-2 border rounded">
                         <option value="binary">Binary</option>
                         <option value="decimal" selected>Decimal</option>
@@ -279,7 +279,7 @@
                     <input type="text" id="num1" class="w-full p-2 border rounded mt-2" placeholder="Enter first number">
                 </div>
                 <div>
-                    <label class="block text-gray-700 font-bold mb-2">Select Number Base</label>
+                    <label class="block text-gray-700 font-bold mb-2">Select Base</label>
                     <select id="num2System" class="w-full p-2 border rounded">
                         <option value="binary">Binary</option>
                         <option value="decimal" selected>Decimal</option>
@@ -323,7 +323,6 @@
     </div>
 </div>
 </section>
-
  <!-- Footer -->
 <footer class="bg-gray-800 text-white py-4">
     <div class="container mx-auto px-6 py-6">
@@ -385,270 +384,343 @@
 </footer>
 
 <script>
-    // Enhanced conversion utility functions
-        const bases = {
-            'binary': 2,
-            'decimal': 10,
-            'octal': 8,
-            'hexadecimal': 16
-        };
+    // Number System Conversion and Calculation Calculator
 
-        function validateInput(number, base) {
-            const validationRules = {
-                'binary': /^[01]+$/,
-                'decimal': /^-?\d+$/,
-                'octal': /^[0-7]+$/,
-                'hexadecimal': /^[0-9A-Fa-f]+$/
-            };
+const bases = {
+    'binary': 2,
+    'decimal': 10,
+    'octal': 8,
+    'hexadecimal': 16
+};
 
-            if (!validationRules[base].test(number)) {
-                throw new Error(`Invalid ${base} number format`);
-            }
+function validateInput(number, base) {
+    // Regex to match decimal numbers with optional decimal point
+    const validationRules = {
+        'binary': /^-?[01]+(\.[01]+)?$/,
+        'decimal': /^-?\d+(\.\d+)?$/,
+        'octal': /^-?[0-7]+(\.[0-7]+)?$/,
+        'hexadecimal': /^-?[0-9A-Fa-f]+(\.[0-9A-Fa-f]+)?$/
+    };
+
+    if (!validationRules[base].test(number)) {
+        throw new Error(`Invalid ${base} number format`);
+    }
+}
+
+function splitNumber(number) {
+    // Split number into integer and fractional parts
+    const parts = number.toString().split('.');
+    return {
+        integer: parts[0],
+        fractional: parts[1] || '0'
+    };
+}
+
+function convertToDecimal(number, fromBase) {
+    let steps = [`🔍 Starting Conversion: ${number} (${fromBase}) → Decimal`];
+    
+    // Validate input
+    validateInput(number, fromBase);
+
+    // Handle sign
+    const isNegative = number.startsWith('-');
+    number = isNegative ? number.slice(1) : number;
+
+    // Split number into integer and fractional parts
+    const { integer, fractional } = splitNumber(number);
+
+    // Convert integer and fractional parts separately
+    let decimalInteger = 0;
+    let decimalFractional = 0;
+
+    // Convert integer part
+    if (fromBase === 'binary') {
+        decimalInteger = parseBinary(integer, steps, false);
+    } else if (fromBase === 'decimal') {
+        decimalInteger = parseInt(integer, 10);
+        steps.push(`📍 Integer part is already in decimal: ${decimalInteger}`);
+    } else if (fromBase === 'octal') {
+        decimalInteger = parseOctal(integer, steps, false);
+    } else if (fromBase === 'hexadecimal') {
+        decimalInteger = parseHexadecimal(integer, steps, false);
+    }
+
+    // Convert fractional part
+    if (fractional !== '0') {
+        if (fromBase === 'binary') {
+            decimalFractional = parseBinary(fractional, steps, true);
+        } else if (fromBase === 'decimal') {
+            decimalFractional = parseDecimalFractional(fractional);
+            steps.push(`📍 Fractional part is already in decimal: 0.${fractional}`);
+        } else if (fromBase === 'octal') {
+            decimalFractional = parseOctal(fractional, steps, true);
+        } else if (fromBase === 'hexadecimal') {
+            decimalFractional = parseHexadecimal(fractional, steps, true);
         }
+    }
 
-        function convertToDecimal(number, fromBase) {
-            let steps = [`🔍 Starting Conversion: ${number} (${fromBase}) → Decimal`];
+    // Combine integer and fractional parts
+    const decimal = decimalInteger + decimalFractional;
+    const finalDecimal = isNegative ? -decimal : decimal;
+
+    steps.push(`✅ Final Decimal Value: ${finalDecimal}`);
+    return { value: finalDecimal, steps: steps };
+}
+
+function parseBinary(number, steps, isFractional) {
+    let decimal = 0;
+    let detailedSteps = [];
+    const powerFunc = isFractional 
+        ? (i) => Math.pow(2, -(i + 1)) 
+        : (i) => Math.pow(2, i);
+
+    if (isFractional) {
+        for (let i = 0; i < number.length; i++) {
+            const digit = parseInt(number[i]);
+            const value = digit * powerFunc(i);
+            detailedSteps.push(`Digit ${digit} × 2^-${i+1} = ${value.toFixed(6)}`);
+            decimal += value;
+        }
+    } else {
+        for (let i = 0; i < number.length; i++) {
+            const digit = parseInt(number[number.length - 1 - i]);
+            const value = digit * powerFunc(i);
+            detailedSteps.push(`Digit ${digit} × 2^${i} = ${value}`);
+            decimal += value;
+        }
+    }
+
+    steps.push(`🧮 Binary ${isFractional ? 'Fractional' : 'Integer'} to Decimal Calculation:`);
+    steps.push(detailedSteps.join('\n'));
+    return decimal;
+}
+
+function parseOctal(number, steps, isFractional) {
+    let decimal = 0;
+    let detailedSteps = [];
+    const powerFunc = isFractional 
+        ? (i) => Math.pow(8, -(i + 1)) 
+        : (i) => Math.pow(8, i);
+
+    if (isFractional) {
+        for (let i = 0; i < number.length; i++) {
+            const digit = parseInt(number[i]);
+            const value = digit * powerFunc(i);
+            detailedSteps.push(`Digit ${digit} × 8^-${i+1} = ${value.toFixed(6)}`);
+            decimal += value;
+        }
+    } else {
+        for (let i = 0; i < number.length; i++) {
+            const digit = parseInt(number[number.length - 1 - i]);
+            const value = digit * powerFunc(i);
+            detailedSteps.push(`Digit ${digit} × 8^${i} = ${value}`);
+            decimal += value;
+        }
+    }
+
+    steps.push(`🧮 Octal ${isFractional ? 'Fractional' : 'Integer'} to Decimal Calculation:`);
+    steps.push(detailedSteps.join('\n'));
+    return decimal;
+}
+
+function parseHexadecimal(number, steps, isFractional) {
+    let decimal = 0;
+    let detailedSteps = [];
+    const hexMap = { 'A': 10, 'B': 11, 'C': 12, 'D': 13, 'E': 14, 'F': 15 };
+    const powerFunc = isFractional 
+        ? (i) => Math.pow(16, -(i + 1)) 
+        : (i) => Math.pow(16, i);
+
+    if (isFractional) {
+        for (let i = 0; i < number.length; i++) {
+            const digit = number[i].toUpperCase();
+            const numValue = isNaN(digit) ? hexMap[digit] : parseInt(digit);
+            const value = numValue * powerFunc(i);
+            detailedSteps.push(`Digit ${digit} × 16^-${i+1} = ${value.toFixed(6)}`);
+            decimal += value;
+        }
+    } else {
+        for (let i = 0; i < number.length; i++) {
+            const digit = number[number.length - 1 - i].toUpperCase();
+            const numValue = isNaN(digit) ? hexMap[digit] : parseInt(digit);
+            const value = numValue * powerFunc(i);
+            detailedSteps.push(`Digit ${digit} × 16^${i} = ${value}`);
+            decimal += value;
+        }
+    }
+
+    steps.push(`🧮 Hexadecimal ${isFractional ? 'Fractional' : 'Integer'} to Decimal Calculation:`);
+    steps.push(detailedSteps.join('\n'));
+    return decimal;
+}
+
+function parseDecimalFractional(number) {
+    return parseFloat(`0.${number}`);
+}
+
+function convertFromDecimal(decimal, toBase) {
+    let steps = [`🔍 Converting ${decimal} from Decimal → ${toBase}`];
+    
+    // Separate integer and fractional parts
+    const isNegative = decimal < 0;
+    decimal = Math.abs(decimal);
+    const { integer: intPart, fractional: fracPart } = splitNumber(decimal.toString());
+
+    let convertedInteger = '';
+    let convertedFractional = '';
+
+    // Convert integer part
+    let remainingInteger = parseInt(intPart, 10);
+    do {
+        const remainder = remainingInteger % bases[toBase];
+        // Modified to use correct hexadecimal letter representation
+        const mappedRemainder = remainder > 9 
+            ? String.fromCharCode(remainder - 10 + 65) 
+            : remainder.toString();
+        convertedInteger = `${mappedRemainder}${convertedInteger}`;
+        remainingInteger = Math.floor(remainingInteger / bases[toBase]);
+        steps.push(`Divide ${remainingInteger * bases[toBase] + remainder} by ${bases[toBase]}: Remainder ${mappedRemainder}, Quotient ${remainingInteger}`);
+    } while (remainingInteger > 0);
+
+    // Convert fractional part (if exists)
+    if (fracPart !== '0') {
+        let fractionalDecimal = parseFloat(`0.${fracPart}`);
+        let fractionalSteps = [];
+        const maxFractionalDigits = 10; // Limit fractional precision
+
+        for (let i = 0; i < maxFractionalDigits; i++) {
+            fractionalDecimal *= bases[toBase];
+            const integerPart = Math.floor(fractionalDecimal);
+            // Modified to use correct hexadecimal letter representation
+            const mappedDigit = integerPart > 9 
+                ? String.fromCharCode(integerPart - 10 + 65) 
+                : integerPart.toString();
             
-            // Validate input
-            validateInput(number, fromBase);
-
-            // Handle different input bases
-            let decimal;
-            if (fromBase === 'binary') {
-                decimal = parseBinary(number, steps);
-            } else if (fromBase === 'decimal') {
-                decimal = parseInt(number, 10);
-                steps.push(`📍 Input is already in decimal: ${decimal}`);
-            } else if (fromBase === 'octal') {
-                decimal = parseOctal(number, steps);
-            } else if (fromBase === 'hexadecimal') {
-                decimal = parseHexadecimal(number, steps);
-            }
-
-            steps.push(`✅ Final Decimal Value: ${decimal}`);
-            return { value: decimal, steps: steps };
-        }
-
-        function parseBinary(number, steps) {
-            let decimal = 0;
-            let detailedSteps = [];
-
-            for (let i = 0; i < number.length; i++) {
-                const digit = parseInt(number[number.length - 1 - i]);
-                const value = digit * Math.pow(2, i);
-                detailedSteps.push(`Digit ${digit} × 2^${i} = ${value}`);
-                decimal += value;
-            }
-
-            steps.push('🧮 Binary to Decimal Calculation:');
-            steps.push(detailedSteps.join('\n'));
-            return decimal;
-        }
-
-        function parseOctal(number, steps) {
-            let decimal = 0;
-            let detailedSteps = [];
-
-            for (let i = 0; i < number.length; i++) {
-                const digit = parseInt(number[number.length - 1 - i]);
-                const value = digit * Math.pow(8, i);
-                detailedSteps.push(`Digit ${digit} × 8^${i} = ${value}`);
-                decimal += value;
-            }
-
-            steps.push('🧮 Octal to Decimal Calculation:');
-            steps.push(detailedSteps.join('\n'));
-            return decimal;
-        }
-
-        function parseHexadecimal(number, steps) {
-            let decimal = 0;
-            let detailedSteps = [];
-            const hexMap = { 'A': 10, 'B': 11, 'C': 12, 'D': 13, 'E': 14, 'F': 15 };
-
-            for (let i = 0; i < number.length; i++) {
-                const digit = number[number.length - 1 - i].toUpperCase();
-                const numValue = isNaN(digit) ? hexMap[digit] : parseInt(digit);
-                const value = numValue * Math.pow(16, i);
-                detailedSteps.push(`Digit ${digit} × 16^${i} = ${value}`);
-                decimal += value;
-            }
-
-            steps.push('🧮 Hexadecimal to Decimal Calculation:');
-            steps.push(detailedSteps.join('\n'));
-            return decimal;
-        }
-
-        function convertFromDecimal(decimal, toBase) {
-            let steps = [`🔍 Converting ${decimal} from Decimal → ${toBase}`];
+            convertedFractional += mappedDigit;
+            fractionalSteps.push(`${fractionalDecimal} × ${bases[toBase]} = ${integerPart} (Digit: ${mappedDigit})`);
             
-            let converted;
-            if (toBase === 'binary') {
-                converted = decimalToBinary(decimal, steps);
-            } else if (toBase === 'decimal') {
-                converted = decimal.toString(10);
-                steps.push(`📍 Input is already in decimal: ${converted}`);
-            } else if (toBase === 'octal') {
-                converted = decimalToOctal(decimal, steps);
-            } else if (toBase === 'hexadecimal') {
-                converted = decimalToHexadecimal(decimal, steps);
-            }
-
-            steps.push(`✅ Final ${toBase} Value: ${converted}`);
-            return { value: converted, steps: steps };
+            fractionalDecimal -= integerPart;
+            
+            // Stop if no more significant fractional part remains
+            if (fractionalDecimal === 0) break;
         }
 
-        function decimalToBinary(decimal, steps) {
-            let binary = '';
-            let quotient = decimal;
-            let divisionSteps = [];
+        steps.push('🧮 Fractional Part Conversion:');
+        steps.push(fractionalSteps.join('\n'));
+    }
 
-            while (quotient > 0) {
-                const remainder = quotient % 2;
-                divisionSteps.push(`${quotient} ÷ 2 = ${Math.floor(quotient/2)} Remainder: ${remainder}`);
-                binary = remainder + binary;
-                quotient = Math.floor(quotient / 2);
-            }
+    // Combine results
+    let result = convertedInteger;
+    if (convertedFractional) {
+        result += `.${convertedFractional}`;
+    }
 
-            steps.push('🔢 Decimal to Binary Conversion:');
-            steps.push(divisionSteps.join('\n'));
-            return binary || '0';
-        }
+    // Add negative sign back if original was negative
+    if (isNegative) {
+        result = `-${result}`;
+    }
 
-        function decimalToOctal(decimal, steps) {
-            let octal = '';
-            let quotient = decimal;
-            let divisionSteps = [];
+    steps.push(`✅ Final ${toBase} Value: ${result}`);
+    
+    return { 
+        value: result, 
+        steps: steps 
+    };
+}
 
-            while (quotient > 0) {
-                const remainder = quotient % 8;
-                divisionSteps.push(`${quotient} ÷ 8 = ${Math.floor(quotient/8)} Remainder: ${remainder}`);
-                octal = remainder + octal;
-                quotient = Math.floor(quotient / 8);
-            }
+function convertNumber() {
+    const fromSystem = document.getElementById('fromSystem').value;
+    const toSystem = document.getElementById('toSystem').value;
+    const inputNumber = document.getElementById('inputNumber').value;
+    const conversionStepsElement = document.getElementById('conversionSteps');
+    const resultElement = document.getElementById('result');
 
-            steps.push('🔢 Decimal to Octal Conversion:');
-            steps.push(divisionSteps.join('\n'));
-            return octal || '0';
-        }
+    try {
+        // First convert to decimal
+        const decimalConversion = convertToDecimal(inputNumber, fromSystem);
+        
+        // Then convert from decimal to target base
+        const finalConversion = convertFromDecimal(decimalConversion.value, toSystem);
+        
+        // Combine steps
+        const allSteps = [
+            ...decimalConversion.steps,
+            ...finalConversion.steps
+        ];
 
-        function decimalToHexadecimal(decimal, steps) {
-            let hex = '';
-            let quotient = decimal;
-            const hexMap = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'];
-            let divisionSteps = [];
+        // Display conversion steps
+        conversionStepsElement.value = allSteps.join('\n');
+        
+        // Display result
+        resultElement.value = finalConversion.value;
+    } catch (error) {
+        conversionStepsElement.value = `Error: ${error.message}`;
+        resultElement.value = '';
+    }
+}
 
-            while (quotient > 0) {
-                const remainder = quotient % 16;
-                divisionSteps.push(`${quotient} ÷ 16 = ${Math.floor(quotient/16)} Remainder: ${hexMap[remainder]}`);
-                hex = hexMap[remainder] + hex;
-                quotient = Math.floor(quotient / 16);
-            }
+function calculateOperation(operation) {
+    const num1System = document.getElementById('num1System').value;
+    const num2System = document.getElementById('num2System').value;
+    const outputSystem = document.getElementById('outputSystem').value;
+    const num1 = document.getElementById('num1').value;
+    const num2 = document.getElementById('num2').value;
+    const calculationStepsElement = document.getElementById('calculationSteps');
+    const calculationResultElement = document.getElementById('calculationResult');
+    const calculationResultDecimalElement = document.getElementById('calculationResultDecimal');
 
-            steps.push('🔢 Decimal to Hexadecimal Conversion:');
-            steps.push(divisionSteps.join('\n'));
-            return hex || '0';
-        }
+    try {
+        // Convert both numbers to decimal first
+        const decimal1 = convertToDecimal(num1, num1System);
+        const decimal2 = convertToDecimal(num2, num2System);
 
-        function convertNumber() {
-            try {
-                const fromSystem = document.getElementById('fromSystem').value;
-                const toSystem = document.getElementById('toSystem').value;
-                const inputNumber = document.getElementById('inputNumber').value;
-                const resultElement = document.getElementById('result');
-                const stepsElement = document.getElementById('conversionSteps');
+        // Perform the operation
+        let result, decimalResult;
+        let steps = [
+            ...decimal1.steps,
+            ...decimal2.steps,
+            `🧮 Performing ${operation} operation`
+        ];
 
-                // Clear previous results
-                resultElement.value = '';
-                stepsElement.value = '';
-
-                // Convert to decimal first
-                const decimalConversion = convertToDecimal(inputNumber, fromSystem);
-                
-                // Convert from decimal to target system
-                const finalConversion = convertFromDecimal(decimalConversion.value, toSystem);
-
-                // Combine all steps
-                const allSteps = [...decimalConversion.steps, ...finalConversion.steps];
-
-                // Display results
-                resultElement.value = finalConversion.value;
-                stepsElement.value = allSteps.join('\n');
-            } catch (error) {
-                const resultElement = document.getElementById('result');
-                const stepsElement = document.getElementById('conversionSteps');
-                resultElement.value = 'Error';
-                stepsElement.value = error.message;
-            }
-        }
-
-        // Calculation function with detailed steps
-          function calculateOperation(operation) {
-            try {
-                const num1System = document.getElementById('num1System').value;
-                const num2System = document.getElementById('num2System').value;
-                const outputSystem = document.getElementById('outputSystem').value;
-                const num1Input = document.getElementById('num1').value;
-                const num2Input = document.getElementById('num2').value;
-                const resultDecimalElement = document.getElementById('calculationResultDecimal');
-                const resultElement = document.getElementById('calculationResult');
-                const stepsElement = document.getElementById('calculationSteps');
-
-                // Clear previous results
-                resultDecimalElement.value = '';
-                resultElement.value = '';
-                stepsElement.value = '';
-
-                let steps = [`🚀 Starting Calculation: ${num1Input} (${num1System}) ${operation} ${num2Input} (${num2System})`];
-
-                // Validate and convert both numbers to decimal first
-                const decimal1 = convertToDecimal(num1Input, num1System);
-                const decimal2 = convertToDecimal(num2Input, num2System);
-
-                steps = steps.concat(decimal1.steps, decimal2.steps);
-
-                // Perform calculation
-                let resultDecimal;
-                switch(operation) {
-                    case '+': 
-                        resultDecimal = decimal1.value + decimal2.value; 
-                        steps.push(`➕ Addition: ${decimal1.value} + ${decimal2.value} = ${resultDecimal}`);
-                        break;
-                    case '-': 
-                        resultDecimal = decimal1.value - decimal2.value;
-                        steps.push(`➖ Subtraction: ${decimal1.value} - ${decimal2.value} = ${resultDecimal}`);
-                        break;
-                    case '*': 
-                        resultDecimal = decimal1.value * decimal2.value;
-                        steps.push(`✖️ Multiplication: ${decimal1.value} × ${decimal2.value} = ${resultDecimal}`);
-                        break;
-                    case '/': 
-                        if (decimal2.value === 0) {
-                            throw new Error('Division by zero is not allowed');
-                        }
-                        resultDecimal = decimal1.value / decimal2.value;
-                        steps.push(`➗ Division: ${decimal1.value} ÷ ${decimal2.value} = ${resultDecimal}`);
-                        break;
+        switch (operation) {
+            case '+':
+                decimalResult = decimal1.value + decimal2.value;
+                steps.push(`${decimal1.value} + ${decimal2.value} = ${decimalResult}`);
+                break;
+            case '-':
+                decimalResult = decimal1.value - decimal2.value;
+                steps.push(`${decimal1.value} - ${decimal2.value} = ${decimalResult}`);
+                break;
+            case '*':
+                decimalResult = decimal1.value * decimal2.value;
+                steps.push(`${decimal1.value} × ${decimal2.value} = ${decimalResult}`);
+                break;
+            case '/':
+                if (decimal2.value === 0) {
+                    throw new Error('Division by zero');
                 }
-
-                // Convert result to selected output system
-                const finalResult = convertFromDecimal(Math.floor(resultDecimal), outputSystem);
-                steps = steps.concat(finalResult.steps);
-
-                // Display results
-                resultDecimalElement.value = resultDecimal;
-                resultElement.value = finalResult.value;
-                stepsElement.value = steps.join('\n');
-            } catch (error) {
-                const resultDecimalElement = document.getElementById('calculationResultDecimal');
-                const resultElement = document.getElementById('calculationResult');
-                const stepsElement = document.getElementById('calculationSteps');
-                
-                resultDecimalElement.value = 'Error';
-                resultElement.value = 'Error';
-                stepsElement.value = error.message;
-            }
+                decimalResult = decimal1.value / decimal2.value;
+                steps.push(`${decimal1.value} ÷ ${decimal2.value} = ${decimalResult}`);
+                break;
         }
+
+        // Convert result to output base
+        const convertedResult = convertFromDecimal(decimalResult, outputSystem);
+        
+        // Combine and display steps
+        steps.push(...convertedResult.steps);
+        calculationStepsElement.value = steps.join('\n');
+        
+        // Display results
+        calculationResultElement.value = convertedResult.value;
+        calculationResultDecimalElement.value = decimalResult.toString();
+
+    } catch (error) {
+        calculationStepsElement.value = `Error: ${error.message}`;
+        calculationResultElement.value = '';
+        calculationResultDecimalElement.value = '';
+    }
+}
 
          // Firebase configuration
     const firebaseConfig = {

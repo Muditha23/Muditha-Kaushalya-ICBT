@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Muditha Kaushalya</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.7.1/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-auth.js"></script>
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+    <link rel="stylesheet" type="text/css" href="Styles.css">
+    <link rel="icon" href="favicon.png" type="image/png">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <nav class="fixed w-full bg-white/80 backdrop-blur-md shadow-sm z-50">
+        <!-- Navigation Menu -->
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <span class="text-2xl font-bold gradient-text">Muditha</span>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index.html" class="nav-link text-gray-600 hover:text-indigo-600">Home</a>
+                    
+                    <!-- Assignments Dropdown -->
+                    <div class="relative group">
+                        <button class="peer nav-link text-gray-600 hover:text-indigo-600 flex items-center">
+                            Assignments
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        
+                        <!-- Dropdown Content -->
+                        <div class="hidden hover:block peer-hover:block absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                            <a href="Assignments.html" class="block px-4 py-2 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600">Diploma</a>
+                            <a href="higher-diploma.html" class="block px-4 py-2 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600">Higher Diploma</a>
+                            <a href="degree.html" class="block px-4 py-2 text-gray-600 hover:bg-indigo-50 hover:text-indigo-600">Degree</a>
+                        </div>
+                    </div>
+                    
+                    <a href="Projects.html" class="nav-link text-gray-600 hover:text-indigo-600">Projects</a>
+                    <a href="About.html" class="nav-link text-gray-600 hover:text-indigo-600">About</a>
+                    <a href="Contact.html" class="nav-link text-gray-600 hover:text-indigo-600">Contact</a>
+                    <a href="javascript:void(0);" onclick="toggleModal()" class="block text-gray-600 hover:text-indigo-600">Sign In</a>
+                    <a href="Account Center.html">
+                    <div id="navProfileContainer">
+                    <i class="fa-solid fa-user text-gray-600 text-2xl border-2 border-gray-600 p-2 w-10 h-10 flex items-center justify-center rounded-full"></i></div></a>
+                     <a href="javascript:void(0);" onclick="toggleSignUpModal()" class="nav-link text-gray-600 hover:text-indigo-600"></a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button class="md:hidden" id="menuBtn">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div class="md:hidden hidden" id="mobileMenu">
+            <div class="px-4 py-3 space-y-3">
+                <a href="index.html" class="block text-gray-600 hover:text-indigo-600">Home</a>
+                
+                <!-- Mobile Assignments Dropdown -->
+                <div class="space-y-2">
+                    <button class="mobile-dropdown-btn flex items-center text-gray-600 hover:text-indigo-600 w-full">
+                        <span>Assignments</span>
+                        <svg class="w-4 h-4 ml-1 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div class="mobile-dropdown-content hidden pl-4 space-y-2">
+                        <a href="Assignments.html" class="block text-gray-600 hover:text-indigo-600">Diploma</a>
+                        <a href="higher-diploma.html" class="block text-gray-600 hover:text-indigo-600">Higher Diploma</a>
+                        <a href="degree.html" class="block text-gray-600 hover:text-indigo-600">Degree</a>
+                    </div>
+                </div>
+                
+                <a href="Projects.html" class="block text-gray-600 hover:text-indigo-600">Projects</a>
+                <a href="About.html" class="block text-gray-600 hover:text-indigo-600">About</a>
+                <a href="Contact.html" class="block text-gray-600 hover:text-indigo-600">Contact</a>
+                <a href="javascript:void(0);" onclick="toggleModal()" class="block text-gray-600 hover:text-indigo-600">Sign In</a>
+                <a href="javascript:void(0);" onclick="toggleSignUpModal()" class="block text-gray-600 hover:text-indigo-600"></a>
+                <a href="Account Center.html" class="nav-link text-gray-600 hover:text-indigo-600">Your Account</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sign-In Modal -->
+    <div id="signInModal" class="fixed inset-0 flex items-center justify-center hidden bg-black bg-opacity-50 z-50">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
+            <!-- Close Button -->
+            <button onclick="toggleModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Sign In</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="email">
+                        Email
+                    </label>
+                    <input id="email" type="email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Enter your email">
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
+                        Password
+                    </label>
+                    <input id="password" type="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Enter your password">
+                </div>
+                <button onclick="login()" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50">
+                    Sign In
+                </button>
+                <!-- Links -->
+                <div class="text-center mt-4 space-y-2">
+                    <a href="#" onclick="showPasswordResetModal()" class="block text-blue-500 hover:underline">Forgot Password?</a>
+                    <a href="#" onclick="switchToSignUp()" class="block text-blue-500 hover:underline">Don't have an account? Sign Up</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sign-Up Modal -->
+    <div id="signUpModal" class="fixed inset-0 flex items-center justify-center hidden bg-black bg-opacity-50 z-50">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
+            <!-- Close Button -->
+            <button onclick="toggleSignUpModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Sign Up</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="signupName">
+                        Full Name
+                    </label>
+                    <input id="signupName" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Enter your full name">
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="signupEmail">
+                        Email
+                    </label>
+                    <input id="signupEmail" type="email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Enter your email">
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="signupPassword">
+                        Password
+                    </label>
+                    <input id="signupPassword" type="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Enter your password">
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="confirmPassword">
+                        Confirm Password
+                    </label>
+                    <input id="confirmPassword" type="password" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Confirm your password">
+                </div>
+                <button onclick="signUp()" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-700 focus:ring-opacity-50">
+                    Sign Up
+                </button>
+                <div class="text-center mt-4">
+                    <p class="text-gray-600">Already have an account? 
+                        <a href="#" onclick="switchToSignIn()" class="text-blue-500 hover:underline">Sign In</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Reset Modal -->
+    <div id="passwordResetModal" class="fixed inset-0 flex items-center justify-center hidden bg-black bg-opacity-50 z-50">
+        <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md relative">
+            <!-- Close Button -->
+            <button onclick="hidePasswordResetModal()" class="absolute top-2 right-2 text-gray-500 hover:text-gray-800">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            
+            <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Reset Password</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="resetEmail">
+                        Email
+                    </label>
+                    <input id="resetEmail" type="email" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Enter your email">
+                </div>
+                <button onclick="resetPassword()" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50">
+                    Reset Password
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="alertModal" class="fixed inset-0 flex items-center justify-center hidden bg-black bg-opacity-50 z-50">
+        <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-gray-800">Message</h2>
+                <button onclick="hideAlert()" class="text-gray-500 hover:text-gray-800">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <p id="alertMessage" class="text-gray-700"></p>
+        </div>
+    </div>
+
+<section class="min-h-screen flex items-center pt-20">
+    <div class="max-w-7xl p-8 mx-auto space-y-6">
+        <!-- Header -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8">
+            <div class="flex items-center gap-4 mb-8">
+                <div class="p-3 bg-blue-50 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-800">PDF Pages Editor</h1>
+            </div>
+            
+            <!-- Status Message -->
+            <div id="statusMessage" class="hidden mb-6 p-4 rounded-lg border"></div>
+
+            <!-- File Input Cards -->
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <!-- Main PDF Upload -->
+                <div class="bg-gray-50 rounded-xl p-6 border border-gray-200 hover:border-blue-300 transition-colors">
+                    <div class="flex items-center gap-3 mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                        </svg>
+                        <label class="text-lg font-semibold text-gray-700">Upload Main PDF</label>
+                    </div>
+                    <input type="file" id="pdfInput" accept=".pdf" 
+                           class="block w-full text-sm text-gray-500
+                                  file:mr-4 file:py-2.5 file:px-4
+                                  file:rounded-lg file:border-0
+                                  file:text-sm file:font-medium
+                                  file:bg-blue-50 file:text-blue-700
+                                  hover:file:bg-blue-100
+                                  cursor-pointer"/>
+                </div>
+
+                <!-- Additional Pages Upload -->
+                <div class="bg-gray-50 rounded-xl p-6 border border-gray-200 hover:border-green-300 transition-colors">
+                    <div class="flex items-center gap-3 mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <label class="text-lg font-semibold text-gray-700">Add New Pages</label>
+                    </div>
+                    <input type="file" id="addPagesInput" accept=".pdf"
+                           class="block w-full text-sm text-gray-500
+                                  file:mr-4 file:py-2.5 file:px-4
+                                  file:rounded-lg file:border-0
+                                  file:text-sm file:font-medium
+                                  file:bg-green-50 file:text-green-700
+                                  hover:file:bg-green-100
+                                  cursor-pointer"/>
+                </div>
+            </div>
+
+            <!-- Insert Pages Controls -->
+            <div class="bg-gray-50 rounded-xl p-6 border border-gray-200 mb-8" id="insertControls">
+                <div class="flex items-center gap-3 mb-6">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    <h3 class="text-lg font-semibold text-gray-800">Insert Options</h3>
+                </div>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Insert Position</label>
+                        <select id="insertPosition" class="w-full rounded-lg border-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                            <option value="before">Before Current Page</option>
+                            <option value="after">After Current Page</option>
+                            <option value="start">At Start of Document</option>
+                            <option value="end">At End of Document</option>
+                            <option value="custom">At Specific Page</option>
+                        </select>
+                    </div>
+                    <div id="customPageContainer" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Page Number</label>
+                        <input type="number" id="customPageNumber" min="1" value="1"
+                               class="w-full rounded-lg border-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"/>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Page Range from New PDF</label>
+                        <div class="flex gap-3 items-center">
+                            <input type="number" id="startPage" min="1" value="1"
+                                   class="w-24 rounded-lg border-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"/>
+                            <span class="text-gray-500">to</span>
+                            <input type="number" id="endPage" min="1" value="1"
+                                   class="w-24 rounded-lg border-gray-200 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap gap-4">
+                <button onclick="exportPDF()" id="exportBtn" disabled
+                        class="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    Export PDF
+                </button>
+                <button onclick="addNewPages()" id="addPagesBtn" disabled
+                        class="inline-flex items-center gap-2 bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    Insert Pages
+                </button>
+                <button onclick="removeCurrentPage()" id="removePageBtn" disabled
+                        class="inline-flex items-center gap-2 bg-red-600 text-white px-6 py-2.5 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    Remove Page
+                </button>
+            </div>
+        </div>
+
+        <!-- PDF Preview -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 md:p-8">
+            <div class="flex items-center gap-3 mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <h2 class="text-xl font-semibold text-gray-800">PDF Preview</h2>
+            </div>
+            
+            <!-- Page Navigation -->
+            <div class="flex items-center justify-between mb-6 bg-gray-50 rounded-lg p-4">
+                <span id="pageInfo" class="text-gray-600 font-medium">No PDF loaded</span>
+                <div class="flex gap-2">
+                    <button onclick="previousPage()" id="prevPageBtn" disabled
+                            class="p-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <button onclick="nextPage()" id="nextPageBtn" disabled
+                            class="p-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Canvas Container -->
+            <div class="bg-gray-50 rounded-lg p-4 flex justify-center">
+                <canvas id="pdfCanvas" class="border border-gray-200 rounded-lg shadow-sm bg-white"></canvas>
+            </div>
+        </div>
+    </div>
+</section>
+
+  <!-- Footer -->
+<footer class="bg-gray-800 text-white py-4">
+    <div class="container mx-auto px-6 py-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Contact Info -->
+            <div class="space-y-2">
+                <h3 class="text-lg font-semibold text-white">Contact</h3>
+                <div class="flex items-center space-x-2 text-gray-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                    <a href="mailto:mudithakaushalya57@gmail.com" class="hover:text-indigo-400 transition">
+                        mudithakaushalya57@gmail.com
+                    </a>
+                </div>
+            </div>
+
+            <!-- Social Links -->
+            <div class="space-y-2">
+                <h3 class="text-lg font-semibold text-white">Connect With Me</h3>
+                <div class="flex space-x-4">
+                    <!-- GitHub -->
+                    <a href="#" class="text-gray-300 hover:text-indigo-400 transition" aria-label="GitHub">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/><path d="M9 18c-4.51 2-5-2-7-2"/></svg>
+                    </a>
+                    <!-- LinkedIn -->
+                    <a href="#" class="text-gray-300 hover:text-indigo-400 transition" aria-label="LinkedIn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
+                    </a>
+                    <!-- Twitter -->
+                    <a href="#" class="text-gray-300 hover:text-indigo-400 transition" aria-label="Twitter">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>
+                    </a>
+                    <!-- Instagram -->
+                    <a href="#" class="text-gray-300 hover:text-indigo-400 transition" aria-label="Instagram">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div class="space-y-2">
+                <h3 class="text-lg font-semibold text-white">Quick Links</h3>
+                <div class="flex flex-col space-y-1">
+                    <a href="index.html" class="text-gray-300 hover:text-indigo-400 transition">Home</a>
+                    <a href="Assignments.html" class="text-gray-300 hover:text-indigo-400 transition">Assignments</a>
+                    <a href="Projects.html" class="text-gray-300 hover:text-indigo-400 transition">Projects</a>
+                    <a href="About.html" class="text-gray-300 hover:text-indigo-400 transition">About</a>
+                    <a href="Contact.html" class="text-gray-300 hover:text-indigo-400 transition">Contact</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Copyright -->
+        <div class="border-t border-gray-700 mt-6 pt-4 text-center">
+            <p class="text-gray-300">
+                © Muditha Kaushalya. All rights reserved.
+            </p>
+        </div>
+    </div>
+</footer>
+
+<script>
+// Constants and state management
+const state = {
+    pdfDoc: null,
+    pageNum: 1,
+    pageRendering: false,
+    currentPdfDoc: null
+};
+
+// DOM Elements
+const elements = {
+    canvas: document.getElementById('pdfCanvas'),
+    statusMessage: document.getElementById('statusMessage'),
+    customPageContainer: document.getElementById('customPageContainer'),
+    insertPosition: document.getElementById('insertPosition'),
+    customPageNumber: document.getElementById('customPageNumber'),
+    startPage: document.getElementById('startPage'),
+    endPage: document.getElementById('endPage'),
+    buttons: {
+        export: document.getElementById('exportBtn'),
+        addPages: document.getElementById('addPagesBtn'),
+        removePage: document.getElementById('removePageBtn'),
+        prevPage: document.getElementById('prevPageBtn'),
+        nextPage: document.getElementById('nextPageBtn')
+    },
+    fileInputs: {
+        pdf: document.getElementById('pdfInput'),
+        addPages: document.getElementById('addPagesInput')
+    }
+};
+
+// Initialize PDF.js worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// Utility Functions
+function showStatus(message, isError = false) {
+    elements.statusMessage.textContent = message;
+    elements.statusMessage.className = `mb-4 p-4 rounded ${isError ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`;
+    elements.statusMessage.classList.remove('hidden');
+    setTimeout(() => {
+        elements.statusMessage.classList.add('hidden');
+    }, 3000);
+}
+
+function updateButtonStates() {
+    const hasDoc = !!state.pdfDoc;
+    elements.buttons.export.disabled = !hasDoc;
+    elements.buttons.removePage.disabled = !hasDoc || state.pdfDoc?.numPages <= 1;
+    elements.buttons.addPages.disabled = !hasDoc;
+    elements.buttons.prevPage.disabled = !hasDoc || state.pageNum <= 1;
+    elements.buttons.nextPage.disabled = !hasDoc || state.pageNum >= state.pdfDoc?.numPages;
+    
+    if (hasDoc) {
+        elements.customPageNumber.max = state.pdfDoc.numPages;
+    }
+}
+
+// PDF Loading and Rendering Functions
+async function loadPDF(file) {
+    try {
+        const arrayBuffer = await file.arrayBuffer();
+        state.currentPdfDoc = await PDFLib.PDFDocument.load(arrayBuffer);
+        const pdfBytes = await state.currentPdfDoc.save();
+        state.pdfDoc = await pdfjsLib.getDocument({data: pdfBytes}).promise;
+        
+        state.pageNum = 1;
+        await renderPage(state.pageNum);
+        updateButtonStates();
+        showStatus('PDF loaded successfully');
+    } catch (error) {
+        console.error('Error loading PDF:', error);
+        showStatus('Error loading PDF. Please try again.', true);
+    }
+}
+
+async function renderPage(num) {
+    if (state.pageRendering) return;
+    state.pageRendering = true;
+
+    try {
+        const page = await state.pdfDoc.getPage(num);
+        const viewport = page.getViewport({scale: 1.5});
+        
+        elements.canvas.height = viewport.height;
+        elements.canvas.width = viewport.width;
+
+        await page.render({
+            canvasContext: elements.canvas.getContext('2d'),
+            viewport: viewport
+        }).promise;
+
+        document.getElementById('pageInfo').textContent = `Page: ${num} of ${state.pdfDoc.numPages}`;
+        state.pageRendering = false;
+        updateButtonStates();
+    } catch (error) {
+        console.error('Error rendering page:', error);
+        state.pageRendering = false;
+        showStatus('Error displaying page. Please try again.', true);
+    }
+}
+
+// Page Manipulation Functions
+async function getInsertIndex() {
+    const position = elements.insertPosition.value;
+    const customPage = parseInt(elements.customPageNumber.value);
+    
+    switch (position) {
+        case 'before':
+            return state.pageNum - 1;
+        case 'after':
+            return state.pageNum;
+        case 'start':
+            return 0;
+        case 'end':
+            return state.currentPdfDoc.getPageCount();
+        case 'custom':
+            return Math.min(Math.max(0, customPage - 1), state.currentPdfDoc.getPageCount());
+        default:
+            return state.currentPdfDoc.getPageCount();
+    }
+}
+
+async function addNewPages() {
+    if (!elements.fileInputs.addPages.files.length) {
+        showStatus('Please select a PDF to add pages from', true);
+        return;
+    }
+
+    try {
+        const newPdfBytes = await elements.fileInputs.addPages.files[0].arrayBuffer();
+        const newPdfDoc = await PDFLib.PDFDocument.load(newPdfBytes);
+        
+        const startPage = parseInt(elements.startPage.value) - 1;
+        const endPage = parseInt(elements.endPage.value) - 1;
+        
+        if (startPage > endPage || startPage < 0 || endPage >= newPdfDoc.getPageCount()) {
+            showStatus('Invalid page range specified', true);
+            return;
+        }
+
+        const pageIndexes = Array.from(
+            { length: endPage - startPage + 1 },
+            (_, i) => startPage + i
+        );
+        const pages = await state.currentPdfDoc.copyPages(newPdfDoc, pageIndexes);
+        
+        const insertIndex = await getInsertIndex();
+        pages.forEach((page, i) => {
+            state.currentPdfDoc.insertPage(insertIndex + i, page);
+        });
+        
+        const updatedPdfBytes = await state.currentPdfDoc.save();
+        state.pdfDoc = await pdfjsLib.getDocument({data: updatedPdfBytes}).promise;
+        await renderPage(state.pageNum);
+        
+        elements.fileInputs.addPages.value = '';
+        showStatus('Pages inserted successfully');
+    } catch (error) {
+        console.error('Error inserting pages:', error);
+        showStatus('Error inserting pages. Please try again.', true);
+    }
+}
+
+async function removeCurrentPage() {
+    if (!state.currentPdfDoc || state.currentPdfDoc.getPageCount() <= 1) {
+        showStatus('Cannot remove the last page', true);
+        return;
+    }
+
+    try {
+        state.currentPdfDoc.removePage(state.pageNum - 1);
+        const newPdfBytes = await state.currentPdfDoc.save();
+        state.pdfDoc = await pdfjsLib.getDocument({data: newPdfBytes}).promise;
+        state.pageNum = Math.min(state.pageNum, state.pdfDoc.numPages);
+        await renderPage(state.pageNum);
+        showStatus('Page removed successfully');
+    } catch (error) {
+        console.error('Error removing page:', error);
+        showStatus('Error removing page. Please try again.', true);
+    }
+}
+
+async function exportPDF() {
+    if (!state.currentPdfDoc) {
+        showStatus('No PDF to export', true);
+        return;
+    }
+
+    try {
+        const pdfBytes = await state.currentPdfDoc.save();
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        saveAs(blob, 'edited-document.pdf');
+        showStatus('PDF exported successfully');
+    } catch (error) {
+        console.error('Error exporting PDF:', error);
+        showStatus('Error exporting PDF. Please try again.', true);
+    }
+}
+
+// Navigation Functions
+async function previousPage() {
+    if (state.pdfDoc && state.pageNum > 1) {
+        state.pageNum--;
+        await renderPage(state.pageNum);
+    }
+}
+
+async function nextPage() {
+    if (state.pdfDoc && state.pageNum < state.pdfDoc.numPages) {
+        state.pageNum++;
+        await renderPage(state.pageNum);
+    }
+}
+
+// Event Listeners
+function initializeEventListeners() {
+    // Insert position change handler
+    elements.insertPosition.addEventListener('change', (e) => {
+        elements.customPageContainer.classList.toggle('hidden', e.target.value !== 'custom');
+    });
+
+    // File input handlers
+    elements.fileInputs.pdf.addEventListener('change', (e) => {
+        if (e.target.files[0]) {
+            loadPDF(e.target.files[0]);
+        }
+    });
+
+    elements.fileInputs.addPages.addEventListener('change', async (e) => {
+        if (e.target.files[0]) {
+            elements.buttons.addPages.disabled = !state.pdfDoc;
+            
+            try {
+                const newPdfBytes = await e.target.files[0].arrayBuffer();
+                const newPdfDoc = await PDFLib.PDFDocument.load(newPdfBytes);
+                const pageCount = newPdfDoc.getPageCount();
+                
+                elements.startPage.max = pageCount;
+                elements.endPage.max = pageCount;
+                elements.endPage.value = pageCount;
+            } catch (error) {
+                console.error('Error loading new PDF:', error);
+                showStatus('Error loading new PDF pages. Please try again.', true);
+            }
+        }
+    });
+}
+
+// Initialize the application
+document.addEventListener('DOMContentLoaded', initializeEventListeners);
+
+// Export functions for use in HTML
+window.addNewPages = addNewPages;
+window.removeCurrentPage = removeCurrentPage;
+window.exportPDF = exportPDF;
+window.previousPage = previousPage;
+window.nextPage = nextPage;
+
+ // Firebase configuration
+    const firebaseConfig = {
+    apiKey: "AIzaSyC3vHKWQPYGgN5q2i1u_BBh0ApVFG_8KIs",
+    authDomain: "mudith-kaushalya-icbt.firebaseapp.com",
+    projectId: "mudith-kaushalya-icbt",
+    storageBucket: "mudith-kaushalya-icbt.firebasestorage.app",
+    messagingSenderId: "1042808523530",
+    appId: "1:1042808523530:web:17ea795d38e9867f6fc8f3",
+    measurementId: "G-53QCZRLTTN"
+};
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+// DOM Elements
+document.addEventListener('DOMContentLoaded', function() {
+    // Mobile menu toggle
+    const menuBtn = document.getElementById('menuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    let isMenuOpen = false;
+
+    menuBtn.addEventListener('click', function() {
+        isMenuOpen = !isMenuOpen;
+        mobileMenu.classList.toggle('hidden');
+    });
+
+    // Mobile dropdown functionality
+    const mobileDropdownBtns = document.querySelectorAll('.mobile-dropdown-btn');
+    mobileDropdownBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const dropdownContent = this.nextElementSibling;
+            dropdownContent.classList.toggle('hidden');
+            const arrow = this.querySelector('svg');
+            arrow.classList.toggle('rotate-180');
+        });
+    });
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', function(event) {
+        const isClickInsideMenu = mobileMenu.contains(event.target);
+        const isClickOnMenuBtn = menuBtn.contains(event.target);
+        
+        if (!isClickInsideMenu && !isClickOnMenuBtn && isMenuOpen) {
+            mobileMenu.classList.add('hidden');
+            isMenuOpen = false;
+        }
+    });
+
+    // Close mobile menu when clicking on a link
+    const mobileLinks = mobileMenu.getElementsByTagName('a');
+    for (let link of mobileLinks) {
+        link.addEventListener('click', function() {
+            mobileMenu.classList.add('hidden');
+            isMenuOpen = false;
+        });
+    }
+});
+
+// Authentication State Observer
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        if (user.emailVerified) {
+            // User is signed in and email is verified
+            console.log('User is signed in and verified:', user.email);
+        } else {
+            // User is signed in but email is not verified
+            console.log('Please verify your email');
+        }
+    } else {
+        // User is signed out
+        console.log('User is signed out');
+    }
+});
+
+// Sign Up Function
+function signUp() {
+    const email = document.getElementById('signupEmail').value;
+    const password = document.getElementById('signupPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const name = document.getElementById('signupName').value;
+
+    // Form validation
+    if (!email || !password || !confirmPassword || !name) {
+        showAlert('Please fill in all fields.');
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        showAlert('Passwords do not match.');
+        return;
+    }
+
+    if (password.length < 6) {
+        showAlert('Password should be at least 6 characters long.');
+        return;
+    }
+
+    // Create user with email and password
+    auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            // Update user profile with name
+            return userCredential.user.updateProfile({
+                displayName: name
+            });
+        })
+        .then(() => {
+            // Send email verification
+            return auth.currentUser.sendEmailVerification();
+        })
+        .then(() => {
+            showAlert('Registration successful! Please check your email for verification.');
+            toggleSignUpModal();
+            
+            // Sign out the user until they verify their email
+            return auth.signOut();
+        })
+        .catch((error) => {
+            showAlert('Error: ' + error.message);
+        });
+}
+
+// Login Function
+function login() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    if (!email || !password) {
+        showAlert('Please enter both email and password.');
+        return;
+    }
+
+    auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            if (userCredential.user.emailVerified) {
+                window.location.href = "Assignments.html";
+                window.location.href = "Account Center.html";
+            } else {
+                auth.signOut();
+                showAlert('Please verify your email before signing in.');
+            }
+        })
+        .catch((error) => {
+            showAlert('Error: ' + error.message);
+        });
+}
+
+// Password Reset Function
+function resetPassword() {
+    const email = document.getElementById('resetEmail').value;
+    if (!email) {
+        showAlert("Please enter your email to reset your password.");
+        return;
+    }
+
+    auth.sendPasswordResetEmail(email)
+        .then(() => {
+            showAlert("Password reset email sent. Please check your inbox.");
+            hidePasswordResetModal();
+        })
+        .catch((error) => {
+            showAlert("Error: " + error.message);
+        });
+}
+
+// Sign Out Function
+function signOut() {
+    auth.signOut()
+        .then(() => {
+            window.location.href = "index.html";
+        })
+        .catch((error) => {
+            showAlert("Error signing out: " + error.message);
+        });
+}
+
+// UI Toggle Functions
+function toggleModal() {
+    const modal = document.getElementById('signInModal');
+    modal.classList.toggle('hidden');
+}
+
+function toggleSignUpModal() {
+    const modal = document.getElementById('signUpModal');
+    modal.classList.toggle('hidden');
+}
+
+function showPasswordResetModal() {
+    toggleModal(); // Close the sign-in modal
+    const passwordResetModal = document.getElementById('passwordResetModal');
+    passwordResetModal.classList.remove('hidden');
+}
+
+function hidePasswordResetModal() {
+    const passwordResetModal = document.getElementById('passwordResetModal');
+    passwordResetModal.classList.add('hidden');
+}
+
+function switchToSignUp() {
+    toggleModal(); // Hide sign-in modal
+    toggleSignUpModal(); // Show sign-up modal
+}
+
+function switchToSignIn() {
+    toggleSignUpModal(); // Hide sign-up modal
+    toggleModal(); // Show sign-in modal
+}
+
+// Alert Functions
+function showAlert(message) {
+    const alertModal = document.getElementById('alertModal');
+    const alertMessage = document.getElementById('alertMessage');
+    alertMessage.textContent = message;
+    alertModal.classList.remove('hidden');
+}
+
+function hideAlert() {
+    const alertModal = document.getElementById('alertModal');
+    alertModal.classList.add('hidden');
+}
+
+// Form Input Validation Functions
+function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
+
+function validatePassword(password) {
+    // Password must be at least 6 characters long
+    // You can add more password requirements here
+    return password.length >= 6;
+}
+
+// Helper Functions
+function clearFormInputs(formId) {
+    const form = document.getElementById(formId);
+    if (form) {
+        const inputs = form.getElementsByTagName('input');
+        for (let input of inputs) {
+            input.value = '';
+        }
+    }
+}
+
+// Function to update nav bar after sign in
+function updateNavBarAfterSignIn(user) {
+    const navProfileContainer = document.getElementById('navProfileContainer');
+    navProfileContainer.innerHTML = `
+        <div id="profileInitial" class="w-10 h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center text-2xl ">
+            ${user.email ? user.email[0].toUpperCase() : 'U'}
+        </div>
+    `;
+}
+
+// Function to update nav bar after sign out
+function updateNavBarAfterSignOut() {
+    const navProfileContainer = document.getElementById('navProfileContainer');
+    navProfileContainer.innerHTML = `
+        <a href="Account Center.html">
+            <i class="fa-solid fa-user text-gray-600 text-2xl border-2 border-gray-600 p-2 w-10 h-10 flex items-center justify-center rounded-full"></i>
+        </a>
+    `;
+}
+
+// Modify the authentication state change listener
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        if (user.emailVerified) {
+            updateNavBarAfterSignIn(user);
+            console.log('User is signed in and verified:', user.email);
+        } else {
+            updateNavBarAfterSignOut();
+            console.log('Please verify your email');
+        }
+    } else {
+        updateNavBarAfterSignOut();
+        console.log('User is signed out');
+    }
+});
+
+// Update the sign out function
+function signOut() {
+    auth.signOut()
+        .then(() => {
+            updateNavBarAfterSignOut();
+            window.location.href = "index.html";
+        })
+        .catch((error) => {
+            showAlert("Error signing out: " + error.message);
+        });
+}
+document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+});
+    </script>
+</body>
+</html>

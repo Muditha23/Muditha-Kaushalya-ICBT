@@ -399,19 +399,14 @@ Select an operation to see results
 // Add this at the top of your script section
 let isAuthCheckComplete = false;
 
-// Authentication check for Projects page
-function checkAuthForProjects() {
-    const currentPath = window.location.pathname;
-    const isProjectsPage = currentPath.toLowerCase().includes('projects.html');
-    
-    if (isProjectsPage) {
+// Authentication check for Matrix Solver page
+ function checkAuthForMatrixSolver() {
         auth.onAuthStateChanged((user) => {
-            isAuthCheckComplete = true;
             if (!user) {
-                // If not signed in and trying to access Projects page, show sign in modal
+                // If not signed in, show sign-in modal
                 toggleModal();
                 
-                // Add event listener to modal close button
+                // Add event listener to modal close button to redirect if not authenticated
                 const closeButtons = document.querySelectorAll('[onclick="toggleModal()"]');
                 closeButtons.forEach(button => {
                     button.addEventListener('click', () => {
@@ -423,62 +418,25 @@ function checkAuthForProjects() {
             }
         });
     }
-}
 
-// Modify the login function to handle Projects page redirect
-function login() {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-
-    if (!email || !password) {
-        showAlert('Please enter both email and password.');
-        return;
+    // Add protection to Matrix Solver page links
+    function setupMatrixSolverLinks() {
+        const matrixSolverLinks = document.querySelectorAll('a[href*="matrix-solver-calculator.html"]');
+        matrixSolverLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                if (!auth.currentUser) {
+                    e.preventDefault();
+                    toggleModal();
+                }
+            });
+        });
     }
 
-    auth.signInWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-            if (userCredential.user.emailVerified) {
-                toggleModal(); // Hide the sign-in modal
-                
-                // Check if we're on or trying to access the Projects page
-                const currentPath = window.location.pathname;
-                const isProjectsPage = currentPath.toLowerCase().includes('projects.html');
-                
-                if (isProjectsPage) {
-                    // Stay on Projects page if that's where we are
-                    window.location.reload();
-                } else {
-                    // Otherwise, redirect to Projects page
-                    window.location.href = "projects.html";
-                }
-            } else {
-                auth.signOut();
-                showAlert('Please verify your email before signing in.');
-            }
-        })
-        .catch((error) => {
-            showAlert('Error: ' + error.message);
-        });
-}
-
-// Add protection to Projects page links
-function setupProjectsLinks() {
-    const projectsLinks = document.querySelectorAll('a[href*="projects.html"]');
-    projectsLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            if (!auth.currentUser) {
-                e.preventDefault();
-                toggleModal();
-            }
-        });
+    // Initialize authentication checks when the document loads
+    document.addEventListener('DOMContentLoaded', () => {
+        checkAuthForMatrixSolver();
+        setupMatrixSolverLinks();
     });
-}
-
-// Initialize these checks when the document loads
-document.addEventListener('DOMContentLoaded', () => {
-    checkAuthForProjects();
-    setupProjectsLinks();
-});
 
 // DOM Elements
 document.addEventListener('DOMContentLoaded', function() {

@@ -1,11 +1,46 @@
+        .chatbot-toggler {
+              position: fixed;
+              bottom: 30px;
+              right: 35px;
+              border: none;
+              height: 50px;
+              width: 50px;
+              display: flex;
+              cursor: pointer;
+              align-items: center;
+              justify-content: center;
+              border-radius: 50%;
+              background: black;;
+            }
+            
+        .chatbot-toggler i  {
+              font-size:30px;
+              align-items:center;
+              color: #fff;
+              position: absolute;
+            }
+        
+        /* Snow Effect */
+        @keyframes fall {
+            to {
+                transform: translateY(100vh);
+            }
+        }
+        .snowflake {
+            position: fixed;
+            top: -10px;
+            z-index: 9999;
+            user-select: none;
+            cursor: default;
+            animation: fall linear forwards;
+        }
+
         .gradient-text {
             background: linear-gradient(45deg, #4F46E5, #7C3AED);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        .nav-link {
-            position: relative;
-        }
+        
         .nav-link::after {
             content: '';
             position: absolute;
@@ -16,10 +51,14 @@
             background: #4F46E5;
             transition: width 0.3s ease;
         }
+        .nav-link {
+            position: relative;
+        }
         .nav-link:hover::after {
             width: 100%;
         }
-                /* Dropdown hover area extension */
+
+        /* Dropdown hover area extension */
         .group:hover .absolute {
             display: block;
         }
@@ -63,6 +102,7 @@
         .view-button:hover {
             transform: translateX(5px);
         }
+
         .image-item {
             display: flex;
             flex-direction: column;
@@ -74,3 +114,4 @@
             border-radius: 8px;
             margin-bottom: 15px;
         }
+

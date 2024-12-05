@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
     style.textContent = `
         .snowflake {
             position: fixed;
-            background: #cceaff;
+            background: white;
             border-radius: 50%;
             pointer-events: none;
             z-index: 9999;

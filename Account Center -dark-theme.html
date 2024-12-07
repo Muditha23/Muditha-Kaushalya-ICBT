@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Account Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.7.1/gsap.min.js"></script>
+    <!-- Add Lucide Icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-auth.js"></script>
+    <link rel="stylesheet" type="text/css" href="Styles.css">
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js"></script>
+    <script src="Snow-effect.js"></script>
+    <script src="Security-Code.js"></script>
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
+
+</head>
+<body class="bg-gray-900 min-h-screen flex flex-col text-gray-100">
+    <nav class="fixed w-full bg-gray-800/80 backdrop-blur-md shadow-sm z-50">
+        <!-- Navigation Menu -->
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <span class="text-3xl font-bold text-white">SPHERE STUDY</span>
+                
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="index-dark-theme.html" class="nav-link text-gray-300 hover:text-indigo-400">Home</a>
+                    
+                    <!-- Assignments Dropdown -->
+                    <div class="relative group">
+                        <button class="peer nav-link text-gray-300 hover:text-indigo-400 flex items-center">
+                            Assignments
+                            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        
+                        <!-- Dropdown Content -->
+                        <div class="hidden hover:block peer-hover:block absolute left-0 mt-2 w-48 bg-gray-700 rounded-md shadow-lg py-1 z-50">
+                            <a href="Diploma-dark-theme.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-600 hover:text-indigo-400">Diploma</a>
+                            <a href="higher-diploma.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-600 hover:text-indigo-400">Higher Diploma</a>
+                            <a href="degree.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-600 hover:text-indigo-400">Degree</a>
+                        </div>
+                    </div>
+                    
+                    <a href="Projects-dark-theme.html" class="nav-link text-gray-300 hover:text-indigo-400">Projects</a>
+                    <a href="About-dark-theme.html" class="nav-link text-gray-300 hover:text-indigo-400">About</a>
+                    <a href="Contact.html" class="nav-link text-gray-300 hover:text-indigo-400">Contact</a>
+
+                    <a href="javascript:void(0);" onclick="toggleModal()" class="block text-gray-300 hover:text-indigo-400">Sign In</a>
+                    <a href="Account Center -dark-theme.html">
+                    <div id="navProfileContainer">
+                    <i class="fa-solid fa-user text-gray-300 text-2xl border-2 border-gray-300 p-2 w-10 h-10 flex items-center justify-center rounded-full"></i></div></a>
+                     <a href="javascript:void(0);" onclick="toggleSignUpModal()" class="nav-link text-gray-300 hover:text-indigo-400"></a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button class="md:hidden" id="menuBtn">
+                    <svg class="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div class="md:hidden hidden" id="mobileMenu">
+            <div class="px-4 py-3 space-y-3 bg-gray-800">
+                <a href="index-dark-theme.html" class="block text-gray-300 hover:text-indigo-400">Home</a>
+                
+                <!-- Mobile Assignments Dropdown -->
+                <div class="space-y-2">
+                    <button class="mobile-dropdown-btn flex items-center text-gray-300 hover:text-indigo-400 w-full">
+                        <span>Assignments</span>
+                        <svg class="w-4 h-4 ml-1 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                        </svg>
+                    </button>
+                    <div class="mobile-dropdown-content hidden pl-4 space-y-2">
+                        <a href="Diploma-dark-theme.html" class="block text-gray-300 hover:text-indigo-400">Diploma</a>
+                        <a href="higher-diploma.html" class="block text-gray-300 hover:text-indigo-400">Higher Diploma</a>
+                        <a href="degree.html" class="block text-gray-300 hover:text-indigo-400">Degree</a>
+                    </div>
+                </div>
+                
+                <a href="Projects-dark-theme.html" class="block text-gray-300 hover:text-indigo-400">Projects</a>
+                <a href="About-dark-theme.html" class="block text-gray-300 hover:text-indigo-400">About</a>
+                <a href="Contact.html" class="block text-gray-300 hover:text-indigo-400">Contact</a>
+                
+                <a href="javascript:void(0);" onclick="toggleModal()" class="block text-gray-300 hover:text-indigo-400">Sign In</a>
+                <a href="javascript:void(0);" onclick="toggleSignUpModal()" class="block text-gray-300 hover:text-indigo-400"></a>
+                <a href="Account Center -dark-theme.html" class="nav-link text-gray-300 hover:text-indigo-400">Your Account</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Sign-In Modal -->
+    <div id="signInModal" class="fixed inset-0 flex items-center justify-center hidden bg-black bg-opacity-50 z-50">
+        <div class="bg-gray-800 rounded-lg shadow-lg p-8 w-full max-w-md relative">
+            <!-- Close Button -->
+            <button onclick="toggleModal()" class="absolute top-2 right-2 text-gray-400 hover:text-white">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            
+            <h2 class="text-2xl font-bold mb-6 text-center text-white">Sign In</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-gray-300 text-sm font-bold mb-2" for="email">
+                        Email
+                    </label>
+                    <input id="email" type="email" class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Enter your email">
+                </div>
+                <div>
+                    <label class="block text-gray-300 text-sm font-bold mb-2" for="password">
+                        Password
+                    </label>
+                    <input id="password" type="password" class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Enter your password">
+                </div>
+                <button onclick="login()" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50">
+                    Sign In
+                </button>
+                <!-- Links -->
+                <div class="text-center mt-4 space-y-2">
+                    <a href="#" onclick="showPasswordResetModal()" class="block text-blue-400 hover:underline">Forgot Password?</a>
+                    <a href="#" onclick="switchToSignUp()" class="block text-blue-400 hover:underline">Don't have an account? Sign Up</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sign-Up Modal -->
+    <div id="signUpModal" class="fixed inset-0 flex items-center justify-center hidden bg-black bg-opacity-50 z-50">
+        <div class="bg-gray-800 rounded-lg shadow-lg p-8 w-full max-w-md relative">
+            <!-- Close Button -->
+            <button onclick="toggleSignUpModal()" class="absolute top-2 right-2 text-gray-400 hover:text-white">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            
+            <h2 class="text-2xl font-bold mb-6 text-center text-white">Sign Up</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-gray-300 text-sm font-bold mb-2" for="signupName">
+                        Full Name
+                    </label>
+                    <input id="signupName" type="text" class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Enter your full name">
+                </div>
+                <div>
+                    <label class="block text-gray-300 text-sm font-bold mb-2" for="signupEmail">
+                        Email
+                    </label>
+                    <input id="signupEmail" type="email" class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Enter your email">
+                </div>
+                <div>
+                    <label class="block text-gray-300 text-sm font-bold mb-2" for="signupPassword">
+                        Password
+                    </label>
+                    <input id="signupPassword" type="password" class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Enter your password">
+                </div>
+                <div>
+                    <label class="block text-gray-300 text-sm font-bold mb-2" for="confirmPassword">
+                        Confirm Password
+                    </label>
+                    <input id="confirmPassword" type="password" class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Confirm your password">
+                </div>
+                <button onclick="signUp()" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-700 focus:ring-opacity-50">
+                    Sign Up
+                </button>
+                <div class="text-center mt-4">
+                    <p class="text-gray-400">Already have an account? 
+                        <a href="#" onclick="switchToSignIn()" class="text-blue-400 hover:underline">Sign In</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Reset Modal -->
+    <div id="passwordResetModal" class="fixed inset-0 flex items-center justify-center hidden bg-black bg-opacity-50 z-50">
+        <div class="bg-gray-800 rounded-lg shadow-lg p-8 w-full max-w-md relative">
+            <!-- Close Button -->
+            <button onclick="hidePasswordResetModal()" class="absolute top-2 right-2 text-gray-400 hover:text-white">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+            
+            <h2 class="text-2xl font-bold mb-6 text-center text-white">Reset Password</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-gray-300 text-sm font-bold mb-2" for="resetEmail">
+                        Email
+                    </label>
+                    <input id="resetEmail" type="email" class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600" placeholder="Enter your email">
+                </div>
+                <button onclick="resetPassword()" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-opacity-50">
+                    Reset Password
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="alertModal" class="fixed inset-0 flex items-center justify-center hidden bg-black bg-opacity-50 z-50">
+        <div class="bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-md">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-white">Message</h2>
+                <button onclick="hideAlert()" class="text-gray-400 hover:text-white">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <p id="alertMessage" class="text-gray-300"></p>
+        </div>
+    </div>
+
+<!---- Account Center Control Panel-->
+<div class="flex-1 flex items-center justify-center bg-gray-900 p-4 md:p-6">
+    <div id="accountContainer" class="bg-gray-800 shadow-2xl rounded-xl w-full max-w-md md:max-w-3xl lg:max-w-4xl">
+        <!-- Mobile-Friendly Container -->
+        <div class="p-4 md:p-8">
+            <!-- Profile Section -->
+            <div class="flex flex-col items-center mb-6">
+                <div class="relative">
+                    <div id="profileInitial_1" class="w-24 h-24 md:w-28 md:h-28 rounded-full bg-indigo-600 text-white flex items-center justify-center text-2xl md:text-4xl font-bold mb-4 shadow-lg">
+                    </div>
+                </div>
+                <h2 id="userName" class="text-xl md:text-2xl font-bold text-white text-center"></h2>
+                <p id="userEmail" class="text-sm md:text-base text-gray-400 mt-1 text-center"></p>
+            </div>
+
+            <!-- Scrollable Content for Mobile -->
+            <div class="space-y-4 max-h-[60vh] overflow-y-auto">
+                <!-- Account Details Section -->
+                <div class="bg-gray-700 p-4 rounded-md shadow-sm">
+                    <h3 class="text-base md:text-lg font-semibold text-white mb-3">Account Details</h3>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <strong class="text-sm md:text-base text-gray-300">Full Name:</strong> 
+                                <span id="fullNameDisplay" class="text-sm md:text-base text-white"></span>
+                            </div>
+                            <button onclick="editProfile()" class="text-blue-400 hover:text-blue-500">
+                                <i class="fa-solid fa-edit text-sm md:text-base"></i>
+                            </button>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <strong class="text-sm md:text-base text-gray-300">Email:</strong> 
+                                <span id="emailDisplay" class="text-sm md:text-base text-white"></span>
+                            </div>
+                            <button onclick="verifyEmail()" class="text-green-400 hover:text-green-500">
+                                <i class="fa-solid fa-check-circle text-sm md:text-base"></i>
+                            </button>
+                        </div>
+                        <div>
+                            <strong class="text-sm md:text-base text-gray-300">Member Since:</strong> 
+                            <span id="memberSince" class="text-sm md:text-base text-white"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Responsive Action Sections -->
+                <div class="space-y-4">
+                    <!-- Security Section -->
+                    <div class="bg-gray-700 p-4 rounded-md shadow-sm">
+                        <h3 class="text-base md:text-lg font-semibold text-white mb-3">Security</h3>
+                        <div class="space-y-2">
+                            <button onclick="changePassword()" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition flex items-center justify-center">
+                                <i class="fa-solid fa-lock mr-2 text-sm"></i> 
+                                <span class="text-sm md:text-base">Change Password</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Danger Zone -->
+                    <div class="bg-red-900 p-4 rounded-md shadow-sm">
+                        <h3 class="text-base md:text-lg font-semibold text-red-300 mb-3">Danger Zone</h3>
+                        <div class="space-y-2">
+                            <button onclick="signOut()" class="w-full bg-red-600 text-white py-2 rounded-md hover:bg-red-700 transition flex items-center justify-center">
+                                <i class="fa-solid fa-sign-out-alt mr-2 text-sm"></i> 
+                                <span class="text-sm md:text-base">Sign Out</span>
+                            </button>
+                            <button onclick="deleteAccount()" class="w-full bg-gray-600 text-white py-2 rounded-md hover:bg-gray-700 transition flex items-center justify-center">
+                                <i class="fa-solid fa-trash mr-2 text-sm"></i> 
+                                <span class="text-sm md:text-base">Delete Account</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals (Responsive) -->
+    <!-- Delete Account Confirmation Modal -->
+    <div id="deleteConfirmModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-800 p-4 md:p-6 rounded-lg shadow-xl w-full max-w-sm">
+            <h2 class="text-lg md:text-xl font-bold mb-3 md:mb-4 text-red-400">Confirm Account Deletion</h2>
+            <p class="mb-3 md:mb-4 text-sm md:text-base text-gray-300">Are you sure you want to delete your account? This action cannot be undone.</p>
+            <div class="flex justify-between space-x-2">
+                <button onclick="cancelDelete()" class="flex-1 bg-gray-600 text-white px-3 py-2 md:px-4 md:py-2 rounded text-sm md:text-base">Cancel</button>
+                <button onclick="confirmDeleteAccount()" class="flex-1 bg-red-600 text-white px-3 py-2 md:px-4 md:py-2 rounded text-sm md:text-base">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="editProfileModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-800 p-4 md:p-6 rounded-lg shadow-xl w-full max-w-md">
+            <h2 class="text-lg md:text-xl font-bold mb-3 md:mb-4 text-white">Edit Profile</h2>
+            <form id="editProfileForm">
+                <div class="mb-3 md:mb-4">
+                    <label class="block text-gray-300 mb-2">Full Name</label>
+                    <input type="text" id="editFullName" class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md" required>
+                </div>
+                <div class="flex justify-between">
+                    <button type="button" onclick="cancelEditProfile()" class="bg-gray-600 text-white px-3 py-2 rounded text-sm md:text-base">Cancel</button>
+                    <button type="submit" class="bg-blue-600 text-white px-3 py-2 rounded text-sm md:text-base">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+       <!-- Appearence Button -->
+        <a href="Account Center.html" target="_blank" onclick="window.close();">
+        <button div class="chatbot-toggler">
+        <i class="fa-sharp-duotone fa-solid fa-circle-half-stroke"></i>
+        </button></a>
+
+<script>
+    // Placeholder functions - you'll need to implement these
+    function uploadProfilePicture() {
+        // Implement profile picture upload logic
+        console.log('Upload Profile Picture');
+    }
+
+    function editProfile() {
+        // Show edit profile modal
+        document.getElementById('editProfileModal').classList.remove('hidden');
+        // Populate current values
+        document.getElementById('editFullName').value = document.getElementById('fullNameDisplay').textContent;
+    }
+
+    function cancelEditProfile() {
+        document.getElementById('editProfileModal').classList.add('hidden');
+    }
+
+    function verifyEmail() {
+        // Implement email verification logic
+        console.log('Verify Email');
+    }
+
+    function changePassword() {
+        // Show change password modal or navigate to change password page
+        console.log('Change Password');
+    }
+
+    function manageTwoFactor() {
+        // Implement two-factor authentication management
+        console.log('Manage Two-Factor Authentication');
+    }
+
+    function signOut() {
+        // Implement sign out logic
+        console.log('Sign Out');
+    }
+
+    function deleteAccount() {
+        // Show delete confirmation modal
+        document.getElementById('deleteConfirmModal').classList.remove('hidden');
+    }
+
+    function cancelDelete() {
+        // Hide delete confirmation modal
+        document.getElementById('deleteConfirmModal').classList.add('hidden');
+    }
+
+    function confirmDeleteAccount() {
+        // Implement account deletion logic
+        console.log('Account Deleted');
+        // Hide modal after deletion
+        cancelDelete();
+    }
+
+    document.getElementById('editProfileForm').onsubmit = function(event) {
+        event.preventDefault();
+        // Implement profile update logic
+        const newFullName = document.getElementById('editFullName').value;
+        document.getElementById('fullNameDisplay').textContent = newFullName;
+        cancelEditProfile();
+        console.log('Profile Updated');
+    };
+
+        // Firebase Configuration
+const firebaseConfig = {
+        apiKey: "AIzaSyC3vHKWQPYGgN5q2i1u_BBh0ApVFG_8KIs",
+    authDomain: "mudith-kaushalya-icbt.firebaseapp.com",
+    projectId: "mudith-kaushalya-icbt",
+    storageBucket: "mudith-kaushalya-icbt.appspot.com",
+    messagingSenderId: "1042808523530",
+    appId: "1:1042808523530:web:17ea795d38e9867f6fc8f3",
+    measurementId: "G-53QCZRLTTN"
+};
+
+// Initialize Firebase
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+
+// Authentication State Observer
+auth.onAuthStateChanged((user) => {
+    const accountContainer = document.getElementById('accountContainer');
+    
+    if (user) {
+        // Display user information
+        displayUserInfo(user);
+        accountContainer.classList.remove('hidden');
+    } else {
+        // Redirect to login if not authenticated
+        window.location.href = 'index.html';
+    }
+});
+
+function displayUserInfo(user) {
+    const profileInitial = document.getElementById('profileInitial_1');
+    const userName = document.getElementById('userName');
+    const userEmail = document.getElementById('userEmail');
+    const fullNameDisplay = document.getElementById('fullNameDisplay');
+    const emailDisplay = document.getElementById('emailDisplay');
+    const memberSince = document.getElementById('memberSince');
+
+    // Get first letter of name for profile initial
+    const initials = user.email ? user.email.charAt(0).toUpperCase() : '?';
+    profileInitial_1.textContent = initials;
+
+    // Display user details
+    userName.textContent = user.displayName || 'User';
+    userEmail.textContent = user.email;
+    fullNameDisplay.textContent = user.displayName || 'Not provided';
+    emailDisplay.textContent = user.email;
+
+      memberSince.textContent = new Date(user.metadata.creationTime).toLocaleDateString();
+}
+
+function changePassword() {
+    auth.sendPasswordResetEmail(auth.currentUser.email)
+        .then(() => {
+            alert('Password reset email sent. Please check your inbox.');
+        })
+        .catch((error) => {
+            console.error('Password reset error:', error);
+            alert('Error sending password reset email.');
+        });
+}
+
+function signOut() {
+    auth.signOut()
+        .then(() => {
+            window.location.href = 'index.html';
+        })
+        .catch((error) => {
+            console.error('Sign out error:', error);
+        });
+}
+
+function deleteAccount() {
+    document.getElementById('deleteConfirmModal').classList.remove('hidden');
+}
+
+function cancelDelete() {
+    document.getElementById('deleteConfirmModal').classList.add('hidden');
+}
+
+function confirmDeleteAccount() {
+    const user = auth.currentUser;
+
+    user.delete()
+        .then(() => {
+            alert('Your account has been successfully deleted.');
+            window.location.href = 'index.html';
+        })
+        .catch((error) => {
+            console.error('Delete account error:', error);
+            alert('Error deleting account. Please try again.');
+        });
+}
+function deleteAccount() {
+    // Create a new modal for password confirmation
+    const deleteConfirmModal = document.getElementById('deleteConfirmModal');
+    deleteConfirmModal.innerHTML = `
+        <div class="bg-gray-800 p-4 md:p-6 rounded-lg shadow-xl w-full max-w-sm">
+            <h2 class="text-lg md:text-xl font-bold mb-3 md:mb-4 text-red-500">Confirm Account Deletion</h2>
+            <p class="mb-3 md:mb-4 text-sm md:text-base text-gray-300">Please re-enter your password to confirm deletion:</p>
+            <input type="password" id="deletePasswordConfirm" class="w-full px-3 py-2 border border-gray-600 bg-gray-700 text-white rounded-md mb-3" placeholder="Enter your password">
+            <div class="flex justify-between space-x-2">
+                <button onclick="cancelDelete()" class="flex-1 bg-gray-600 text-gray-200 px-3 py-2 md:px-4 md:py-2 rounded text-sm md:text-base hover:bg-gray-700">Cancel</button>
+                <button onclick="confirmDeleteAccount()" class="flex-1 bg-red-600 text-white px-3 py-2 md:px-4 md:py-2 rounded text-sm md:text-base hover:bg-red-700">Delete</button>
+            </div>
+        </div>
+    `;
+    deleteConfirmModal.classList.remove('hidden');
+}
+
+function confirmDeleteAccount() {
+    const user = auth.currentUser;
+    const passwordConfirm = document.getElementById('deletePasswordConfirm').value;
+
+    // Re-authenticate user before deleting account
+    const credential = firebase.auth.EmailAuthProvider.credential(
+        user.email, 
+        passwordConfirm
+    );
+
+    user.reauthenticateWithCredential(credential)
+        .then(() => {
+            // Password correct, proceed with account deletion
+            return user.delete();
+        })
+        .then(() => {
+            alert('Your account has been successfully deleted.');
+            window.location.href = 'index.html';
+        })
+        .catch((error) => {
+            if (error.code === 'auth/wrong-password') {
+                alert('Incorrect password. Account not deleted.');
+            } else {
+                console.error('Delete account error:', error);
+                alert('Error deleting account. Please try again.');
+            }
+        });
+}
+
+// DOM Elements
+document.addEventListener('DOMContentLoaded', function() {
+    // Mobile menu toggle
+    const menuBtn = document.getElementById('menuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    let isMenuOpen = false;
+
+    menuBtn.addEventListener('click', function() {
+        isMenuOpen = !isMenuOpen;
+        mobileMenu.classList.toggle('hidden');
+    });
+
+    // Mobile dropdown functionality
+    const mobileDropdownBtns = document.querySelectorAll('.mobile-dropdown-btn');
+    mobileDropdownBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const dropdownContent = this.nextElementSibling;
+            dropdownContent.classList.toggle('hidden');
+            const arrow = this.querySelector('svg');
+            arrow.classList.toggle('rotate-180');
+        });
+    });
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', function(event) {
+        const isClickInsideMenu = mobileMenu.contains(event.target);
+        const isClickOnMenuBtn = menuBtn.contains(event.target);
+        
+        if (!isClickInsideMenu && !isClickOnMenuBtn && isMenuOpen) {
+            mobileMenu.classList.add('hidden');
+            isMenuOpen = false;
+        }
+    });
+
+    // Close mobile menu when clicking on a link
+    const mobileLinks = mobileMenu.getElementsByTagName('a');
+    for (let link of mobileLinks) {
+        link.addEventListener('click', function() {
+            mobileMenu.classList.add('hidden');
+            isMenuOpen = false;
+        });
+    }
+});
+
+// Authentication State Observer
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        if (user.emailVerified) {
+            // User is signed in and email is verified
+            console.log('User is signed in and verified:', user.email);
+        } else {
+            // User is signed in but email is not verified
+            console.log('Please verify your email');
+        }
+    } else {
+        // User is signed out
+        console.log('User is signed out');
+    }
+});
+
+// Sign Up Function
+function signUp() {
+    const email = document.getElementById('signupEmail').value;
+    const password = document.getElementById('signupPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const name = document.getElementById('signupName').value;
+
+    // Form validation
+    if (!email || !password || !confirmPassword || !name) {
+        showAlert('Please fill in all fields.');
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        showAlert('Passwords do not match.');
+        return;
+    }
+
+    if (password.length < 6) {
+        showAlert('Password should be at least 6 characters long.');
+        return;
+    }
+
+    // Create user with email and password
+    auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            // Update user profile with name
+            return userCredential.user.updateProfile({
+                displayName: name
+            });
+        })
+        .then(() => {
+            // Send email verification
+            return auth.currentUser.sendEmailVerification();
+        })
+        .then(() => {
+            showAlert('Registration successful! Please check your email for verification.');
+            toggleSignUpModal();
+            
+            // Sign out the user until they verify their email
+            return auth.signOut();
+        })
+        .catch((error) => {
+            showAlert('Error: ' + error.message);
+        });
+}
+
+// Login Function
+function login() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    if (!email || !password) {
+        showAlert('Please enter both email and password to log in.');
+        return;
+    }
+
+    auth.signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            if (userCredential.user.emailVerified) {
+                window.location.href = "Account Center.html";
+            } else {
+                auth.signOut();
+                showAlert('Email not verified. Please check your inbox and verify your email address before logging in.');
+            }
+        })
+        .catch((error) => {
+            switch(error.code) {
+                case 'auth/user-not-found':
+                    showAlert('No account found with this email. Please check your email or sign up.');
+                    break;
+                case 'auth/wrong-password':
+                    showAlert('Incorrect password. Please try again or reset your password.');
+                    break;
+                case 'auth/too-many-requests':
+                    showAlert('Too many login attempts. Please try again later or reset your password.');
+                    break;
+                default:
+                    showAlert('Login failed. Please try again.');
+            }
+        });
+}
+
+// Password Reset Function
+function resetPassword() {
+    const email = document.getElementById('resetEmail').value;
+    if (!email) {
+        showAlert("Please enter your email to reset your password.");
+        return;
+    }
+
+    auth.sendPasswordResetEmail(email)
+        .then(() => {
+            showAlert("Password reset email sent. Please check your inbox.");
+            hidePasswordResetModal();
+        })
+        .catch((error) => {
+            showAlert("Error: " + error.message);
+        });
+}
+
+// Sign Out Function
+function signOut() {
+    auth.signOut()
+        .then(() => {
+            window.location.href = "index.html";
+        })
+        .catch((error) => {
+            showAlert("Error signing out: " + error.message);
+        });
+}
+
+// UI Toggle Functions
+function toggleModal() {
+    const modal = document.getElementById('signInModal');
+    modal.classList.toggle('hidden');
+}
+
+function toggleSignUpModal() {
+    const modal = document.getElementById('signUpModal');
+    modal.classList.toggle('hidden');
+}
+
+function showPasswordResetModal() {
+    toggleModal(); // Close the sign-in modal
+    const passwordResetModal = document.getElementById('passwordResetModal');
+    passwordResetModal.classList.remove('hidden');
+}
+
+function hidePasswordResetModal() {
+    const passwordResetModal = document.getElementById('passwordResetModal');
+    passwordResetModal.classList.add('hidden');
+}
+
+function switchToSignUp() {
+    toggleModal(); // Hide sign-in modal
+    toggleSignUpModal(); // Show sign-up modal
+}
+
+function switchToSignIn() {
+    toggleSignUpModal(); // Hide sign-up modal
+    toggleModal(); // Show sign-in modal
+}
+
+// Alert Functions
+function showAlert(message) {
+    const alertModal = document.getElementById('alertModal');
+    const alertMessage = document.getElementById('alertMessage');
+    alertMessage.textContent = message;
+    alertModal.classList.remove('hidden');
+}
+
+function hideAlert() {
+    const alertModal = document.getElementById('alertModal');
+    alertModal.classList.add('hidden');
+}
+
+// Form Input Validation Functions
+function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
+
+function validatePassword(password) {
+    // Password must be at least 6 characters long
+    // You can add more password requirements here
+    return password.length >= 6;
+}
+
+// Helper Functions
+function clearFormInputs(formId) {
+    const form = document.getElementById(formId);
+    if (form) {
+        const inputs = form.getElementsByTagName('input');
+        for (let input of inputs) {
+            input.value = '';
+        }
+    }
+}
+
+// Function to update nav bar after sign in
+function updateNavBarAfterSignIn(user) {
+    const navProfileContainer = document.getElementById('navProfileContainer');
+    navProfileContainer.innerHTML = `
+        <div id="profileInitial" class="w-10 h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center text-2xl ">
+            ${user.email ? user.email[0].toUpperCase() : 'U'}
+        </div>
+    `;
+}
+
+// Function to update nav bar after sign out
+function updateNavBarAfterSignOut() {
+    const navProfileContainer = document.getElementById('navProfileContainer');
+    navProfileContainer.innerHTML = `
+        <a href="Account Center.html">
+            <i class="fa-solid fa-user text-gray-600 text-2xl border-2 border-gray-600 p-2 w-10 h-10 flex items-center justify-center rounded-full"></i>
+        </a>
+    `;
+}
+
+// Modify the authentication state change listener
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        if (user.emailVerified) {
+            updateNavBarAfterSignIn(user);
+            console.log('User is signed in and verified:', user.email);
+        } else {
+            updateNavBarAfterSignOut();
+            console.log('Please verify your email');
+        }
+    } else {
+        updateNavBarAfterSignOut();
+        console.log('User is signed out');
+    }
+});
+
+// Update the sign out function
+function signOut() {
+    auth.signOut()
+        .then(() => {
+            updateNavBarAfterSignOut();
+            window.location.href = "index.html";
+        })
+        .catch((error) => {
+            showAlert("Error signing out: " + error.message);
+        });
+}
+
+document.getElementById('editProfileForm').onsubmit = function(event) {
+    event.preventDefault();
+    // Implement profile update logic
+    const newFullName = document.getElementById('editFullName').value;
+
+    // Update Firebase user profile
+    const user = firebase.auth().currentUser ;
+    user.updateProfile({
+        displayName: newFullName
+    }).then(() => {
+        // Update the displayed name in the UI
+        document.getElementById('fullNameDisplay').textContent = newFullName;
+        cancelEditProfile();
+        console.log('Profile Updated');
+    }).catch((error) => {
+        console.error('Error updating profile:', error);
+    });
+};
+
+    </script>
+</body>
+</html>

@@ -12,53 +12,11 @@
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
     <link rel="stylesheet" type="text/css" href="Styles.css">
     <script src="Snow-effect.js"></script>
+    <script src="Security.js"></script>
     <link rel="shortcut icon" href="Images/Favicon.png" type="">
-<script>
-        document.addEventListener('keydown', function(e) {
-            // Disable Ctrl + U (View Page Source)
-            if (e.ctrlKey && e.key === 'u') {
-                e.preventDefault();
-            }
-            // Disable Ctrl + Shift + I (Open Developer Tools)
-            if (e.ctrlKey && e.shiftKey && e.key === 'I') {
-                e.preventDefault();
-            }
-            // Disable F12 (Open Developer Tools)
-            if (e.key === 'F12') {
-                e.preventDefault();
-            }
-            // Disable Ctrl + Shift + C (Inspect Element)
-            if (e.ctrlKey && e.shiftKey && e.key === 'C') {
-                e.preventDefault();
-            }
-            // Disable Ctrl + Shift + J (Open Console)
-            if (e.ctrlKey && e.shiftKey && e.key === 'J') {
-                e.preventDefault();
-            }
-            // Disable Ctrl + S (Save Page)
-            if (e.ctrlKey && e.key === 's') {
-                e.preventDefault();
-            }
-            // Disable Ctrl + P (Print Page)
-            if (e.ctrlKey && e.key === 'p') {
-                e.preventDefault();
-            }
-            // Disable Ctrl + A (Select All)
-            if (e.ctrlKey && e.key === 'a') {
-                e.preventDefault();
-            }
-            // Disable right-click context menu
-            if (e.button === 2) {
-                e.preventDefault();
-            }
-        });
-    </script>
-
-
-
 </head>
-<body class="bg-gray-900 text-gray-100">
-    <nav class="fixed w-full bg-gray-800/80 backdrop-blur-md shadow-sm z-50">
+<body class="bg-gray-900 text-gray-100">        
+        <nav class="fixed w-full bg-gray-800/80 backdrop-blur-md shadow-sm z-50">
         <!-- Navigation Menu -->
         <div class="container mx-auto px-6 py-4">
             <div class="flex items-center justify-between">
@@ -80,17 +38,17 @@
                         <!-- Dropdown Content -->
                         <div class="hidden hover:block peer-hover:block absolute left-0 mt-2 w-48 bg-gray-700 rounded-md shadow-lg py-1 z-50">
                             <a href="Diploma-dark-theme.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-600 hover:text-indigo-400">Diploma</a>
-                            <a href="higher-diploma.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-600 hover:text-indigo-400">Higher Diploma</a>
-                            <a href="degree.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-600 hover:text-indigo-400">Degree</a>
+                            <a href="higher-diploma-dark-theme.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-600 hover:text-indigo-400">Higher Diploma</a>
+                            <a href="degree-dark-theme.html" class="block px-4 py-2 text-gray-300 hover:bg-gray-600 hover:text-indigo-400">Degree</a>
                         </div>
                     </div>
                     
                     <a href="Projects-dark-theme.html" class="nav-link text-gray-300 hover:text-indigo-400">Projects</a>
-                    <a href="About.html" class="nav-link text-gray-300 hover:text-indigo-400">About</a>
+                    <a href="About-dark-theme.html" class="nav-link text-gray-300 hover:text-indigo-400">About</a>
                     <a href="Contact.html" class="nav-link text-gray-300 hover:text-indigo-400">Contact</a>
 
                     <a href="javascript:void(0);" onclick="toggleModal()" class="block text-gray-300 hover:text-indigo-400">Sign In</a>
-                    <a href="Account Center.html">
+                    <a href="Account Center -dark-theme.html">
                     <div id="navProfileContainer">
                     <i class="fa-solid fa-user text-gray-300 text-2xl border-2 border-gray-300 p-2 w-10 h-10 flex items-center justify-center rounded-full"></i></div></a>
                      <a href="javascript:void(0);" onclick="toggleSignUpModal()" class="nav-link text-gray-300 hover:text-indigo-400"></a>
@@ -120,23 +78,23 @@
                     </button>
                     <div class="mobile-dropdown-content hidden pl-4 space-y-2">
                         <a href="Diploma-dark-theme.html" class="block text-gray-300 hover:text-indigo-400">Diploma</a>
-                        <a href="higher-diploma.html" class="block text-gray-300 hover:text-indigo-400">Higher Diploma</a>
-                        <a href="degree.html" class="block text-gray-300 hover:text-indigo-400">Degree</a>
+                        <a href="higher-diploma-dark-theme.html" class="block text-gray-300 hover:text-indigo-400">Higher Diploma</a>
+                        <a href="degree-dark-theme.html" class="block text-gray-300 hover:text-indigo-400">Degree</a>
                     </div>
                 </div>
                 
                 <a href="Projects-dark-theme.html" class="block text-gray-300 hover:text-indigo-400">Projects</a>
-                <a href="About.html" class="block text-gray-300 hover:text-indigo-400">About</a>
+                <a href="About-dark-theme.html" class="block text-gray-300 hover:text-indigo-400">About</a>
                 <a href="Contact.html" class="block text-gray-300 hover:text-indigo-400">Contact</a>
                 
                 <a href="javascript:void(0);" onclick="toggleModal()" class="block text-gray-300 hover:text-indigo-400">Sign In</a>
                 <a href="javascript:void(0);" onclick="toggleSignUpModal()" class="block text-gray-300 hover:text-indigo-400"></a>
-                <a href="Account Center.html" class="nav-link text-gray-300 hover:text-indigo-400">Your Account</a>
+                <a href="Account Center -dark-theme.html" class="nav-link text-gray-300 hover:text-indigo-400">Your Account</a>
             </div>
         </div>
     </nav>
 
-    <!-- Sign-In Modal -->
+ <!-- Sign-In Modal -->
     <div id="signInModal" class="fixed inset-0 flex items-center justify-center hidden bg-black bg-opacity-50 z-50">
         <div class="bg-gray-800 rounded-lg shadow-lg p-8 w-full max-w-md relative">
             <!-- Close Button -->

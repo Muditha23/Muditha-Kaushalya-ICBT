@@ -3,6 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sphere Study - Creative Loading</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+               @keyframes drawPath {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        @keyframes orbit {
+            from { transform: rotate(0deg) translateX(100px) rotate(0deg); }
+            to { transform: rotate(360deg) translateX(100px) rotate(-360deg); }
+        }
+        .hidden { display: none; }
+        .fade-in { animation: fadeIn 2s ease-in-out forwards; }
+    </style>
+</head>
+<body>
+<!-- Loading Animation -->
+    <div id="loading-container" class="fixed inset-0 bg-gradient-to-br from-indigo-900 to-purple-900 flex items-center justify-center z-50">
+        <div class="relative w-full max-w-2xl h-[600px]">
+            <svg class="absolute inset-0 w-full h-full" viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
+                        <path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+                    </pattern>
+                    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#grid)" />
+                <circle cx="500" cy="300" r="200" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2" />
+                <circle cx="500" cy="300" r="150" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="2" />
+                <path 
+                    id="spherePath" 
+                    d="M400,200 Q500,150 600,200 T800,300 Q500,350 200,300 T400,200" 
+                    fill="none" 
+                    stroke="url(#textGradient)" 
+                    stroke-width="4"
+                    stroke-dasharray="1000"
+                    stroke-dashoffset="1000"
+                    style="animation: drawPath 3s forwards"
+                />
+                <text 
+                    x="500" 
+                    y="300" 
+                    text-anchor="middle" 
+                    font-size="80" 
+                    font-weight="bold" 
+                    fill="url(#textGradient)"
+                    style="opacity:0; animation: fadeIn 2s forwards 2s"
+                >
+                    SPHERE STUDY
+                </text>
+            </svg>
+            <div class="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex space-x-4">
+                <div class="w-4 h-4 bg-white rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
+                <div class="w-4 h-4 bg-white rounded-full animate-bounce" style="animation-delay: 200ms;"></div>
+                <div class="w-4 h-4 bg-white rounded-full animate-bounce" style="animation-delay: 400ms;"></div>
+            </div>
+        </div>
+    </div>
+
+ <div id="main-content" class="hidden fade-In">
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Muditha Kaushalya</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.7.1/gsap.min.js"></script>
@@ -11,47 +93,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-auth.js"></script>
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
     <link rel="stylesheet" type="text/css" href="Styles.css">
-      <link rel="shortcut icon" href="Images/Favicon.png" type="">
-        <script>
-        document.addEventListener('keydown', function(e) {
-            // Disable Ctrl + U (View Page Source)
-            if (e.ctrlKey && e.key === 'u') {
-                e.preventDefault();
-            }
-            // Disable Ctrl + Shift + I (Open Developer Tools)
-            if (e.ctrlKey && e.shiftKey && e.key === 'I') {
-                e.preventDefault();
-            }
-            // Disable F12 (Open Developer Tools)
-            if (e.key === 'F12') {
-                e.preventDefault();
-            }
-            // Disable Ctrl + Shift + C (Inspect Element)
-            if (e.ctrlKey && e.shiftKey && e.key === 'C') {
-                e.preventDefault();
-            }
-            // Disable Ctrl + Shift + J (Open Console)
-            if (e.ctrlKey && e.shiftKey && e.key === 'J') {
-                e.preventDefault();
-            }
-            // Disable Ctrl + S (Save Page)
-            if (e.ctrlKey && e.key === 's') {
-                e.preventDefault();
-            }
-            // Disable Ctrl + P (Print Page)
-            if (e.ctrlKey && e.key === 'p') {
-                e.preventDefault();
-            }
-            // Disable Ctrl + A (Select All)
-            if (e.ctrlKey && e.key === 'a') {
-                e.preventDefault();
-            }
-            // Disable right-click context menu
-            if (e.button === 2) {
-                e.preventDefault();
-            }
-        });
-    </script>
+    <link rel="shortcut icon" href="Images/Favicon.png" type="">
+  
 </head>
 <body class="bg-gray-50">
     <nav class="fixed w-full bg-white/80 backdrop-blur-md shadow-sm z-50">
@@ -102,7 +145,7 @@
 
         <!-- Mobile Menu -->
         <div class="md:hidden hidden" id="mobileMenu">
-            <div class="px-4 py-3 space-y-3">
+            <div class="px-4 py-3 space-y-3 bg-white">
                 <a href="index.html" class="block text-gray-600 hover:text-indigo-600">Home</a>
                 
                 <!-- Mobile Assignments Dropdown -->
@@ -660,3 +703,24 @@ document.addEventListener('contextmenu', function(e) {
 });
 </script>
 </body>
+    </div>
+
+    <script>
+       document.addEventListener('DOMContentLoaded', function () {
+    const loadingContainer = document.getElementById('loading-container');
+    const mainContent = document.getElementById('main-content');
+
+    // Start fade-out for loading container and fade-in for main content
+    setTimeout(() => {
+        loadingContainer.classList.add('fade-out');
+        setTimeout(() => {
+            loadingContainer.style.display = 'none'; // Remove loading container after animation
+            mainContent.classList.remove('hidden');
+            mainContent.classList.add('fade-in');
+        }, 1500); // Match the duration of the fade-out animation
+    }, 4000); // Delay before transitioning
+});
+
+    </script>
+</body>
+</html>

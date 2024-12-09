@@ -3,99 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sphere Study</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-               @keyframes drawPath {
-            to {
-                stroke-dashoffset: 0;
-            }
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-        @keyframes orbit {
-            from { transform: rotate(0deg) translateX(100px) rotate(0deg); }
-            to { transform: rotate(360deg) translateX(100px) rotate(-360deg); }
-        }
-        .hidden { display: none; }
-        .fade-in { animation: fadeIn 2s ease-in-out forwards; }
-    </style>
-</head>
-<body>
-<!-- Loading Animation -->
-    <div id="loading-container" class="fixed inset-0 bg-gradient-to-br from-indigo-900 to-purple-900 flex items-center justify-center z-50">
-        <div class="relative w-full max-w-2xl h-[600px]">
-            <svg class="absolute inset-0 w-full h-full" viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
-                        <path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
-                    </pattern>
-                    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
-                    </linearGradient>
-                </defs>
-                <rect width="100%" height="100%" fill="url(#grid)" />
-                <circle cx="500" cy="300" r="200" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2" />
-                <circle cx="500" cy="300" r="150" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="2" />
-                <path 
-                    id="spherePath" 
-                    d="M400,200 Q500,150 600,200 T800,300 Q500,350 200,300 T400,200" 
-                    fill="none" 
-                    stroke="url(#textGradient)" 
-                    stroke-width="4"
-                    stroke-dasharray="1000"
-                    stroke-dashoffset="1000"
-                    style="animation: drawPath 3s forwards"
-                />
-                <text 
-                    x="500" 
-                    y="300" 
-                    text-anchor="middle" 
-                    font-size="80" 
-                    font-weight="bold" 
-                    fill="url(#textGradient)"
-                    style="opacity:0; animation: fadeIn 2s forwards 2s"
-                >
-                    SPHERE STUDY
-                </text>
-            </svg>
-            <div class="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex space-x-4">
-                <div class="w-4 h-4 bg-white rounded-full animate-bounce" style="animation-delay: 0ms;"></div>
-                <div class="w-4 h-4 bg-white rounded-full animate-bounce" style="animation-delay: 200ms;"></div>
-                <div class="w-4 h-4 bg-white rounded-full animate-bounce" style="animation-delay: 400ms;"></div>
-            </div>
-        </div>
-    </div>
-
- <div id="main-content" class="hidden fade-In">
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Muditha Kaushalya</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.7.1/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-auth.js"></script>
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v6.0.0-beta3/css/all.css">
     <link rel="stylesheet" type="text/css" href="Styles.css">
-    <link rel="shortcut icon" href="Images/Favicon.png" type="">
-  
+      <link rel="shortcut icon" href="Images/Favicon.png" type="">
+    <title>SPHERE STUDY</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            overflow-x: hidden;
+        }
+        #loader-particles canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+        .progress-container {
+        width: 60%;
+        max-width: 600px;
+        position: relative;
+        z-index: 20;
+    }
+    .progress-bar {
+        height: 4px;
+        background: linear-gradient(to right, #4a90e2, #50f3e2);
+        transition: width 0.5s ease-in-out;
+        position: relative;
+        overflow: hidden;
+    }
+    .progress-bar::after {
+        content: '';
+        position: absolute;
+        top: -2px;
+        left: 0;
+        right: 0;
+        height: 8px;
+        background: radial-gradient(ellipse at center, 
+            rgba(74, 144, 226, 0.5) 0%, 
+            rgba(80, 243, 226, 0) 70%
+        );
+        animation: glow-pulse 2s infinite alternate;
+        opacity: 0.6;
+    }
+    @keyframes glow-pulse {
+        0% {
+            transform: scale(1);
+            opacity: 0.4;
+        }
+        100% {
+            transform: scale(1.1);
+            opacity: 0.7;
+        }
+    }
+    </style>
 </head>
+<body>
+    <div id="loader" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900">
+        <div class="text-center">
+            <h1 class="text-4xl font-bold text-white mb-6">SPHERE STUDY</h1>
+            <div class="w-64 bg-gray-700 rounded-full h-1 overflow-hidden mb-4">
+                <div id="progress-bar" class="bg-indigo-500 h-full transition-all duration-500" style="width: 0%;"></div>
+            </div>
+            <p id="loading-text" class="text-gray-300">Loading...</p>
+            <p id="progress-percent" class="text-white text-xl mt-2">0%</p>
+        </div>
+        <div id="loader-particles"></div>
+    </div>
+
+    <div id="main-content" class="opacity-0 transition-opacity duration-1000">
 <body class="bg-gray-50">
     <nav class="fixed w-full bg-white/80 backdrop-blur-md shadow-sm z-50">
         <!-- Navigation Menu -->
@@ -145,7 +127,7 @@
 
         <!-- Mobile Menu -->
         <div class="md:hidden hidden" id="mobileMenu">
-            <div class="px-4 py-3 space-y-3 bg-white">
+            <div class="px-4 py-3 space-y-3">
                 <a href="index.html" class="block text-gray-600 hover:text-indigo-600">Home</a>
                 
                 <!-- Mobile Assignments Dropdown -->
@@ -404,9 +386,9 @@
         </div>
     </div>
 </footer>
+    </div>
 
-
-<script>
+    <script>
    // Firebase configuration
     const firebaseConfig = {
     apiKey: "AIzaSyC3vHKWQPYGgN5q2i1u_BBh0ApVFG_8KIs",
@@ -701,26 +683,100 @@ function signOut() {
 document.addEventListener('contextmenu', function(e) {
     e.preventDefault();
 });
-</script>
-</body>
-    </div>
 
-    <script>
-       document.addEventListener('DOMContentLoaded', function () {
-    const loadingContainer = document.getElementById('loading-container');
-    const mainContent = document.getElementById('main-content');
+        function createParticleSystem(container) {
+            const canvas = document.createElement('canvas');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            container.appendChild(canvas);
+            const ctx = canvas.getContext('2d');
 
-    // Start fade-out for loading container and fade-in for main content
-    setTimeout(() => {
-        loadingContainer.classList.add('fade-out');
-        setTimeout(() => {
-            loadingContainer.style.display = 'none'; // Remove loading container after animation
-            mainContent.classList.remove('hidden');
-            mainContent.classList.add('fade-in');
-        }, 1500); // Match the duration of the fade-out animation
-    }, 4000); // Delay before transitioning
-});
+            const particles = [];
+            const particleCount = 100;
 
+            class Particle {
+                constructor() {
+                    this.reset();
+                }
+
+                reset() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.radius = Math.random() * 3 + 1;
+                    this.speedX = (Math.random() - 0.5) * 2;
+                    this.speedY = (Math.random() - 0.5) * 2;
+                    this.color = `rgba(${Math.random()*255},${Math.random()*255},${Math.random()*255},0.7)`;
+                }
+
+                update() {
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+
+                    if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                    if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+                }
+
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.fill();
+                }
+            }
+
+            for (let i = 0; i < particleCount; i++) {
+                particles.push(new Particle());
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(particle => {
+                    particle.update();
+                    particle.draw();
+                });
+                requestAnimationFrame(animate);
+            }
+
+            animate();
+        }
+
+        function simulateLoading() {
+            const progressBar = document.getElementById('progress-bar');
+            const loadingText = document.getElementById('loading-text');
+            const progressPercent = document.getElementById('progress-percent');
+            const loader = document.getElementById('loader');
+            const mainContent = document.getElementById('main-content');
+
+            const steps = [
+                { progress: 25, text: 'Initializing resources...' },
+                { progress: 50, text: 'Loading assets...' },
+                { progress: 75, text: 'Preparing interface...' },
+                { progress: 100, text: 'Welcome to Sphere Study!' }
+            ];
+
+            steps.forEach((step, index) => {
+                setTimeout(() => {
+                    progressBar.style.width = `${step.progress}%`;
+                    progressPercent.textContent = `${step.progress}%`;
+                    loadingText.textContent = step.text;
+
+                    if (index === steps.length - 1) {
+                        setTimeout(() => {
+                            loader.classList.add('opacity-0');
+                            setTimeout(() => {
+                                loader.style.display = 'none';
+                                mainContent.classList.remove('opacity-0');
+                            }, 1000);
+                        }, 1000);
+                    }
+                }, (index + 1) * 1000);
+            });
+        }
+
+        window.addEventListener('load', () => {
+            createParticleSystem(document.getElementById('loader-particles'));
+            simulateLoading();
+        })
     </script>
 </body>
 </html>

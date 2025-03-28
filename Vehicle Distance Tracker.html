@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vehicle Distance Tracker</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        /* Prevent text selection and improve touch interactions */
+        body {
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        /* Ensure map takes full width on mobile */
+        #mapContainer {
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col touch-none">
+    <div class="container mx-auto px-4 py-4 md:py-8 max-w-xl">
+        <h1 class="text-2xl md:text-3xl font-bold text-center mb-4 md:mb-6">Vehicle Distance Tracker</h1>
+        
+        <div id="accuracyWarning" class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 hidden">
+            <p class="font-bold">Low GPS Accuracy</p>
+            <p class="text-sm">For best results, ensure clear sky view and GPS signal.</p>
+        </div>
+
+        <div id="trackingControls" class="flex justify-center space-x-2 md:space-x-4 mb-4 md:mb-6">
+            <button id="startTrackingBtn" class="flex-1 bg-green-500 text-white px-3 py-2 md:px-4 md:py-2 rounded hover:bg-green-600 transition">
+                <span class="text-sm md:text-base">Start Tracking</span>
+            </button>
+            <button id="pauseTrackingBtn" class="flex-1 bg-yellow-500 text-white px-3 py-2 md:px-4 md:py-2 rounded hover:bg-yellow-600 transition hidden">
+                <span class="text-sm md:text-base">Pause</span>
+            </button>
+            <button id="stopTrackingBtn" class="flex-1 bg-red-500 text-white px-3 py-2 md:px-4 md:py-2 rounded hover:bg-red-600 transition hidden">
+                <span class="text-sm md:text-base">Stop</span>
+            </button>
+        </div>
+
+        <div id="trackingStats" class="bg-white shadow-md rounded-lg p-3 md:p-4 mb-4 md:mb-6">
+            <div class="grid grid-cols-3 gap-2 md:gap-4 text-center">
+                <div>
+                    <h3 class="font-semibold text-xs md:text-base">Distance</h3>
+                    <p id="distanceDisplay" class="text-sm md:text-base font-bold">0.00 km</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-xs md:text-base">Duration</h3>
+                    <p id="durationDisplay" class="text-sm md:text-base">00:00:00</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-xs md:text-base">Speed</h3>
+                    <p id="speedDisplay" class="text-sm md:text-base">0.00 km/h</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="mapContainer" class="h-64 md:h-96 bg-gray-200 rounded-lg mb-4 md:mb-6 relative">
+            <div id="gpsAccuracyIndicator" class="absolute top-2 right-2 z-50 bg-white rounded-full p-2 shadow-md">
+                <span id="accuracyText" class="text-xs font-bold">GPS: N/A</span>
+            </div>
+        </div>
+
+        <div id="settingsPanel" class="bg-white shadow-md rounded-lg p-3 md:p-4 mb-4">
+            <h2 class="text-lg md:text-xl font-bold mb-2">Tracking Settings</h2>
+            <div class="space-y-2">
+                <div class="flex items-center">
+                    <label class="flex-1 text-sm md:text-base">Distance Unit</label>
+                    <select id="distanceUnitSelect" class="form-select text-sm py-1 px-2 border rounded">
+                        <option value="km">Kilometers</option>
+                        <option value="miles">Miles</option>
+                        <option value="meters">Meters</option>
+                    </select>
+                </div>
+                <div class="flex items-center">
+                    <label class="flex-1 text-sm md:text-base">Tracking Precision</label>
+                    <select id="trackingPrecisionSelect" class="form-select text-sm py-1 px-2 border rounded">
+                        <option value="high">High (More Battery Use)</option>
+                        <option value="balanced" selected>Balanced</option>
+                        <option value="low">Low (Less Accurate)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div id="rideHistory" class="bg-white shadow-md rounded-lg p-3 md:p-4">
+            <h2 class="text-lg md:text-xl font-bold mb-2">Ride History</h2>
+            <div id="rideHistoryList" class="space-y-2 max-h-64 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <script>
+        class VehicleTracker {
+    constructor() {
+        // Tracking configuration
+        this.DISTANCE_UNITS = {
+            'km': 1,
+            'miles': 0.621371,
+            'meters': 1000
+        };
+        this.PRECISION_CONFIG = {
+            'high': { 
+                enableHighAccuracy: true, 
+                maximumAge: 0, 
+                timeout: 5000,
+                minDistance: 1  // Minimum distance (meters) to record a point
+            },
+            'balanced': { 
+                enableHighAccuracy: true, 
+                maximumAge: 10000, 
+                timeout: 10000,
+                minDistance: 5
+            },
+            'low': { 
+                enableHighAccuracy: false, 
+                maximumAge: 30000, 
+                timeout: 15000,
+                minDistance: 10
+            }
+        };
+
+        // State variables
+        this.map = null;
+        this.route = [];
+        this.polyline = null;
+        this.tracking = false;
+        this.pausedTracking = false;
+        this.totalDistance = 0;
+        this.startTime = null;
+        this.pauseTime = null;
+        this.totalPausedTime = 0;
+        this.watchId = null;
+        this.lastRecordedLocation = null;
+
+        // DOM Elements
+        this.startBtn = document.getElementById('startTrackingBtn');
+        this.pauseBtn = document.getElementById('pauseTrackingBtn');
+        this.stopBtn = document.getElementById('stopTrackingBtn');
+        this.distanceDisplay = document.getElementById('distanceDisplay');
+        this.durationDisplay = document.getElementById('durationDisplay');
+        this.speedDisplay = document.getElementById('speedDisplay');
+        this.mapContainer = document.getElementById('mapContainer');
+        this.rideHistoryList = document.getElementById('rideHistoryList');
+        this.accuracyWarning = document.getElementById('accuracyWarning');
+        this.accuracyIndicator = document.getElementById('gpsAccuracyIndicator');
+        this.accuracyText = document.getElementById('accuracyText');
+        this.distanceUnitSelect = document.getElementById('distanceUnitSelect');
+        this.trackingPrecisionSelect = document.getElementById('trackingPrecisionSelect');
+
+        this.currentDistanceUnit = 'km';
+        this.currentPrecision = 'balanced';
+
+        this.initializeMap();
+        this.bindEvents();
+    }
+
+    initializeMap() {
+        this.map = L.map('mapContainer').setView([0, 0], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(this.map);
+    }
+
+    bindEvents() {
+        this.startBtn.addEventListener('click', () => this.startTracking());
+        this.pauseBtn.addEventListener('click', () => this.togglePause());
+        this.stopBtn.addEventListener('click', () => this.stopTracking());
+        this.distanceUnitSelect.addEventListener('change', () => {
+            this.currentDistanceUnit = this.distanceUnitSelect.value;
+            this.updateDistanceDisplay();
+        });
+        this.trackingPrecisionSelect.addEventListener('change', () => {
+            this.currentPrecision = this.trackingPrecisionSelect.value;
+        });
+    }
+
+    startTracking() {
+        if (this.tracking) return;
+
+        // Reset UI and state
+        this.tracking = true;
+        this.startTime = new Date();
+        this.route = [];
+        this.totalDistance = 0;
+        this.totalPausedTime = 0;
+        this.lastRecordedLocation = null;
+
+        this.startBtn.classList.add('hidden');
+        this.pauseBtn.classList.remove('hidden');
+        this.stopBtn.classList.remove('hidden');
+
+        // Get current location and start tracking
+        this.getCurrentPosition();
+        this.startTimer();
+    }
+
+    getCurrentPosition() {
+        const precisionConfig = this.PRECISION_CONFIG[this.currentPrecision];
+        
+        this.watchId = navigator.geolocation.watchPosition(
+            (position) => {
+                if (!this.tracking || this.pausedTracking) return;
+
+                // Check accuracy
+                const accuracy = position.coords.accuracy;
+                this.updateAccuracyIndicator(accuracy);
+
+                const newLocation = {
+                    lat: position.coords.latitude, 
+                    lng: position.coords.longitude,
+                    accuracy: accuracy,
+                    timestamp: position.timestamp
+                };
+
+                // Filter locations based on precision and minimum distance
+                if (this.shouldRecordLocation(newLocation)) {
+                    this.updateRoute(newLocation);
+                }
+            },
+            (error) => {
+                console.error('Geolocation error:', error);
+                this.handleGeolocationError(error);
+            },
+            precisionConfig
+        );
+    }
+
+    shouldRecordLocation(newLocation) {
+        // First location always recorded
+        if (!this.lastRecordedLocation) return true;
+
+        const distance = this.calculateHaversineDistance(
+            this.lastRecordedLocation.lat, this.lastRecordedLocation.lng,
+            newLocation.lat, newLocation.lng
+        );
+
+        // Minimum distance check (in kilometers, converted to meters)
+        const precisionConfig = this.PRECISION_CONFIG[this.currentPrecision];
+        return distance * 1000 >= precisionConfig.minDistance;
+    }
+
+    updateAccuracyIndicator(accuracy) {
+        let accuracyClass = 'text-red-600';
+        let accuracyText = 'Poor';
+
+        if (accuracy <= 10) {
+            accuracyClass = 'text-green-600';
+            accuracyText = 'Excellent';
+        } else if (accuracy <= 20) {
+            accuracyClass = 'text-green-500';
+            accuracyText = 'Good';
+        } else if (accuracy <= 50) {
+            accuracyClass = 'text-yellow-600';
+            accuracyText = 'Fair';
+        }
+
+        this.accuracyText.textContent = `GPS: ${accuracyText}`;
+        this.accuracyText.className = `text-xs font-bold ${accuracyClass}`;
+
+        // Show/hide accuracy warning
+        if (accuracy > 50) {
+            this.accuracyWarning.classList.remove('hidden');
+        } else {
+            this.accuracyWarning.classList.add('hidden');
+        }
+    }
+
+    handleGeolocationError(error) {
+        let errorMessage = '';
+        switch(error.code) {
+            case error.PERMISSION_DENIED:
+                errorMessage = "Location access denied. Please enable location permissions.";
+                break;
+            case error.POSITION_UNAVAILABLE:
+                errorMessage = "Location information unavailable. Check your GPS signal.";
+                break;
+            case error.TIMEOUT:
+                errorMessage = "Location request timed out. Try again.";
+                break;
+            default:
+                errorMessage = "An unknown error occurred.";
+        }
+
+        // Display error (you could create a modal or toast for this)
+        alert(errorMessage);
+    }
+
+    updateRoute(newLocation) {
+        if (this.route.length > 0) {
+            const lastLocation = this.route[this.route.length - 1];
+            const distance = this.calculateHaversineDistance(
+                lastLocation.lat, lastLocation.lng, 
+                newLocation.lat, newLocation.lng
+            );
+            this.totalDistance += distance;
+            this.updateDistanceDisplay();
+            this.lastRecordedLocation = newLocation;
+        }
+
+        this.route.push(newLocation);
+
+        if (!this.polyline) {
+            this.polyline = L.polyline(
+                this.route.map(loc => [loc.lat, loc.lng]), 
+                {color: 'blue', weight: 5}
+            ).addTo(this.map);
+        } else {
+            this.polyline.setLatLngs(this.route.map(loc => [loc.lat, loc.lng]));
+        }
+
+        this.map.setView([newLocation.lat, newLocation.lng], 13);
+    }
+
+    updateDistanceDisplay() {
+        const convertedDistance = this.totalDistance * this.DISTANCE_UNITS[this.currentDistanceUnit];
+        this.distanceDisplay.textContent = `${convertedDistance.toFixed(2)} ${this.currentDistanceUnit}`;
+    }
+
+    // Rest of the methods remain similar to the previous implementation...
+    // (calculateHaversineDistance, toRadians, togglePause, stopTracking, etc.)
+}
+
+// Initialize the tracker
+const vehicleTracker = new VehicleTracker();
+    </script>
+</body>
+</html>

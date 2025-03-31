@@ -154,7 +154,7 @@
 
     <!-- Main JavaScript -->
     <script>
-        // MapKit JS API token - You need to replace this with your actual token
+     // MapKit JS API token - You need to replace this with your actual token
 const MAPKIT_TOKEN = "YOUR_MAPKIT_TOKEN_HERE";
 
 // Initialize variables
@@ -171,6 +171,7 @@ let totalDistance = 0;
 let lastPosition = null;
 let timerInterval;
 let currentSpeed = 0;
+let minMovementThreshold = 5; // Minimum movement in meters to count as actual movement
 
 // Initialize the app
 document.addEventListener('DOMContentLoaded', () => {
@@ -192,38 +193,109 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Initialize Apple Maps with MapKit JS
 function initializeMap() {
-    // Initialize MapKit JS
-    mapkit.init({
-        authorizationCallback: function(done) {
-            done(MAPKIT_TOKEN);
-        }
-    });
-
-    // Create a new map instance
-    map = new mapkit.Map('map', {
-        showsUserLocation: true,
-        tracksUserLocation: true
-    });
-
-    // Center map on user's current location
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(position => {
-            const coordinate = new mapkit.Coordinate(
-                position.coords.latitude,
-                position.coords.longitude
-            );
-            map.setCenter(coordinate);
-            map.setRegion(new mapkit.CoordinateRegion(
-                coordinate,
-                new mapkit.CoordinateSpan(0.01, 0.01)
-            ));
-        }, error => {
-            console.error('Error getting location:', error);
-            alert('Unable to get your location. Please enable location services.');
-        });
-    } else {
-        alert('Geolocation is not supported by this browser.');
+    // Check if mapkit is loaded
+    if (typeof mapkit === 'undefined') {
+        console.error('MapKit JS not loaded. Make sure your API key is correct and the script is properly loaded.');
+        alert('Map could not be loaded. Please check your internet connection and reload the page.');
+        return;
     }
+
+    try {
+        // Initialize MapKit JS
+        mapkit.init({
+            authorizationCallback: function(done) {
+                done(MAPKIT_TOKEN);
+            },
+            language: "en"
+        });
+        
+        // Create a new map instance with explicit zoom controls
+        map = new mapkit.Map('map', {
+            showsUserLocation: true,
+            tracksUserLocation: true,
+            showsZoomControl: true,
+            showsCompass: true,
+            showsScale: true,
+            isZoomEnabled: true,
+            isScrollEnabled: true
+        });
+        
+        // Center map on user's current location
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(position => {
+                const coordinate = new mapkit.Coordinate(
+                    position.coords.latitude,
+                    position.coords.longitude
+                );
+                map.setCenter(coordinate);
+                map.setRegion(new mapkit.CoordinateRegion(
+                    coordinate,
+                    new mapkit.CoordinateSpan(0.01, 0.01)
+                ));
+                
+                // Add a marker for current position
+                addCurrentLocationMarker(coordinate);
+                
+                // Store initial position
+                lastPosition = {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                    timestamp: position.timestamp,
+                    accuracy: position.coords.accuracy
+                };
+                
+                console.log("Initial position set:", coordinate);
+            }, error => {
+                console.error('Error getting location:', error);
+                handleLocationError(error);
+            }, {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            });
+        } else {
+            alert('Geolocation is not supported by this browser.');
+        }
+    } catch (error) {
+        console.error('Error initializing map:', error);
+        alert('Failed to initialize the map. Please check your API key and reload the page.');
+    }
+}
+
+// Add a marker for current location
+function addCurrentLocationMarker(coordinate) {
+    if (currentPosition) {
+        map.removeAnnotation(currentPosition);
+    }
+    
+    currentPosition = new mapkit.MarkerAnnotation(coordinate, {
+        title: "You are here",
+        color: "#3B82F6",
+        glyphText: "📍"
+    });
+    
+    map.addAnnotation(currentPosition);
+}
+
+// Handle location errors with specific messages
+function handleLocationError(error) {
+    let errorMessage;
+    
+    switch(error.code) {
+        case error.PERMISSION_DENIED:
+            errorMessage = "Location access denied. Please enable location services in your browser settings.";
+            break;
+        case error.POSITION_UNAVAILABLE:
+            errorMessage = "Location information is unavailable. Please check your device's GPS or try again later.";
+            break;
+        case error.TIMEOUT:
+            errorMessage = "Location request timed out. Please check your internet connection and try again.";
+            break;
+        default:
+            errorMessage = "An unknown error occurred while retrieving your location.";
+    }
+    
+    alert(errorMessage);
 }
 
 // Setup all event listeners
@@ -271,15 +343,18 @@ function startTracking() {
             updatePosition,
             error => {
                 console.error('Error watching position:', error);
-                alert('Error tracking your location. Please check your location settings.');
+                handleLocationError(error);
                 stopTracking();
             },
             {
                 enableHighAccuracy: true,
-                timeout: 5000,
+                timeout: 10000,
                 maximumAge: 0
             }
         );
+        console.log("Started position watching with ID:", watchId);
+    } else {
+        alert('Geolocation is not supported by this browser.');
     }
 }
 
@@ -287,35 +362,59 @@ function startTracking() {
 function updatePosition(position) {
     if (!tracking || paused) return;
     
+    console.log("Position update received:", position.coords);
+    
     const latitude = position.coords.latitude;
     const longitude = position.coords.longitude;
     const accuracy = position.coords.accuracy;
     
-    // If accuracy is poor, we might want to skip this point
-    if (accuracy > 100) return; // Skip if accuracy worse than 100 meters
+    // If accuracy is too poor, skip this point
+    if (accuracy > 50) {
+        console.log("Skipping low accuracy position update:", accuracy, "meters");
+        return;
+    }
     
     const coordinate = new mapkit.Coordinate(latitude, longitude);
     
-    // Save the position
+    // Update current position marker
+    addCurrentLocationMarker(coordinate);
+    
+    // Process position for tracking
     if (lastPosition) {
-        // Calculate distance from last point
-        const distance = calculateDistance(
+        // Calculate distance from last point in meters
+        const distanceInKm = calculateDistance(
             lastPosition.latitude,
             lastPosition.longitude,
             latitude,
             longitude
         );
+        const distanceInMeters = distanceInKm * 1000;
         
-        // Calculate speed
+        console.log("Distance from last point:", distanceInMeters.toFixed(2), "meters");
+        
+        // Only count movement if:
+        // 1. It's more than our minimum threshold (to avoid GPS jitter)
+        // 2. The accuracy is good enough to trust this movement
+        // 3. There's a reasonable amount of time between updates
         const timeElapsed = (position.timestamp - lastPosition.timestamp) / 1000; // seconds
-        if (timeElapsed > 0) {
-            currentSpeed = (distance / timeElapsed) * 3600; // km/h
-            document.getElementById('speed').textContent = `${currentSpeed.toFixed(1)} km/h`;
-        }
         
-        // Update total distance if it's a significant movement
-        if (distance > 0.001) { // Only count movements more than 1 meter
-            totalDistance += distance;
+        if (distanceInMeters > minMovementThreshold && 
+            timeElapsed > 0.5 && // At least half a second between updates
+            distanceInMeters < (timeElapsed * 100)) { // Speed sanity check (max 100 m/s or 360 km/h)
+            
+            // Calculate speed based on this movement
+            currentSpeed = (distanceInKm / timeElapsed) * 3600; // km/h
+            
+            // Apply a low-pass filter to smooth speed changes
+            if (currentSpeed > 150) { // Speed sanity check
+                console.log("Unreasonable speed detected, likely GPS error:", currentSpeed.toFixed(1), "km/h");
+                currentSpeed = 0;
+            }
+            
+            document.getElementById('speed').textContent = `${currentSpeed.toFixed(1)} km/h`;
+            
+            // Update total distance
+            totalDistance += distanceInKm;
             document.getElementById('distance').textContent = `${totalDistance.toFixed(2)} km`;
             
             // Add to route points
@@ -323,21 +422,34 @@ function updatePosition(position) {
             
             // Update the route line on the map
             updateRouteLine();
+            
+            console.log("Movement recorded:", distanceInKm.toFixed(4), "km, Speed:", currentSpeed.toFixed(1), "km/h");
+        } else {
+            if (distanceInMeters <= minMovementThreshold) {
+                console.log("Movement too small to count:", distanceInMeters.toFixed(2), "meters");
+                document.getElementById('speed').textContent = "0 km/h";
+            } else if (distanceInMeters >= (timeElapsed * 100)) {
+                console.log("Unrealistic movement detected, likely GPS error");
+            }
         }
     } else {
         // This is the first position
         routePoints.push(coordinate);
+        console.log("First position recorded");
     }
     
     // Store last position
     lastPosition = {
         latitude,
         longitude,
-        timestamp: position.timestamp
+        timestamp: position.timestamp,
+        accuracy: accuracy
     };
     
-    // Center map on current position
-    map.setCenter(coordinate);
+    // Only center map on current position while tracking
+    if (tracking && !paused) {
+        map.setCenter(coordinate);
+    }
 }
 
 // Update the route line on the map
@@ -416,6 +528,9 @@ function pauseTracking() {
     // Store elapsed time
     elapsedTime += new Date() - startTime;
     clearInterval(timerInterval);
+    
+    // Set speed to zero when paused
+    document.getElementById('speed').textContent = "0 km/h";
 }
 
 // Resume tracking
@@ -441,6 +556,8 @@ function stopTracking() {
     // Clear watch position
     if (watchId) {
         navigator.geolocation.clearWatch(watchId);
+        console.log("Stopped position watching:", watchId);
+        watchId = null;
     }
     
     // Stop timer
@@ -459,12 +576,25 @@ function stopTracking() {
     document.getElementById('pause-btn').classList.add('hidden');
     document.getElementById('resume-btn').classList.add('hidden');
     document.getElementById('stop-btn').classList.add('hidden');
-    document.getElementById('save-btn').classList.remove('hidden');
+    
+    // Only show save button if we have some data to save
+    if (routePoints.length > 1 && totalDistance > 0) {
+        document.getElementById('save-btn').classList.remove('hidden');
+    }
+    
+    // Set speed to zero when stopped
+    document.getElementById('speed').textContent = "0 km/h";
 }
 
 // Save ride data
 function saveRide() {
     if (tracking) return;
+    
+    // Only save if we have actual route data
+    if (routePoints.length <= 1 || totalDistance <= 0) {
+        alert("No significant ride data to save.");
+        return;
+    }
     
     // Calculate average speed
     const durationInHours = elapsedTime / (1000 * 60 * 60);
@@ -484,13 +614,24 @@ function saveRide() {
     };
     
     // Get existing rides from local storage
-    let rides = JSON.parse(localStorage.getItem('rides') || '[]');
+    let rides = [];
+    try {
+        rides = JSON.parse(localStorage.getItem('rides') || '[]');
+    } catch (error) {
+        console.error("Error parsing rides from local storage:", error);
+    }
     
     // Add new ride
     rides.push(ride);
     
     // Save to local storage
-    localStorage.setItem('rides', JSON.stringify(rides));
+    try {
+        localStorage.setItem('rides', JSON.stringify(rides));
+        console.log("Ride saved successfully");
+    } catch (error) {
+        console.error("Error saving ride to local storage:", error);
+        alert("Failed to save ride data. Your device might be out of storage space.");
+    }
     
     // Show summary
     showSummary(ride);
@@ -520,7 +661,7 @@ function showSummary(ride) {
     document.getElementById('summary-date').textContent = date.toLocaleString();
     
     // Capture map screenshot
-    captureMapScreenshot();
+    captureMapScreenshot(ride.routePoints);
     
     // Show modal
     document.getElementById('summary-modal').classList.remove('hidden');
@@ -532,54 +673,78 @@ function hideSummary() {
 }
 
 // Capture map screenshot
-function captureMapScreenshot() {
+function captureMapScreenshot(routePoints) {
     // Create a temporary map with the route for screenshot
     const screenshotContainer = document.getElementById('map-screenshot');
     screenshotContainer.innerHTML = '';
     
-    // Create a temporary map
-    const tempMap = new mapkit.Map(screenshotContainer, {
-        showsUserLocation: false
-    });
-    
-    // Add route line
-    if (routePoints.length > 1) {
-        const points = routePoints.map(point => 
-            new mapkit.Coordinate(point.latitude || point.latitude, point.longitude || point.longitude)
-        );
-        
-        const routeOverlay = new mapkit.PolylineOverlay(points, {
-            style: {
-                lineWidth: 4,
-                strokeColor: "#3B82F6" // Blue color
-            }
+    try {
+        // Create a temporary map
+        const tempMap = new mapkit.Map(screenshotContainer, {
+            showsUserLocation: false
         });
         
-        tempMap.addOverlay(routeOverlay);
-        
-        // Set map region to show the entire route
-        tempMap.showItems(points);
+        // Add route line
+        if (routePoints && routePoints.length > 1) {
+            const points = routePoints.map(point => 
+                new mapkit.Coordinate(point.latitude, point.longitude)
+            );
+            
+            const routeOverlay = new mapkit.PolylineOverlay(points, {
+                style: {
+                    lineWidth: 4,
+                    strokeColor: "#3B82F6" // Blue color
+                }
+            });
+            
+            tempMap.addOverlay(routeOverlay);
+            
+            // Set map region to show the entire route
+            tempMap.showItems(points);
+        }
+    } catch (error) {
+        console.error("Error creating map screenshot:", error);
+        screenshotContainer.innerHTML = '<div class="flex items-center justify-center h-full bg-gray-200 text-gray-500">Map preview not available</div>';
     }
 }
 
 // Download summary as PDF
 function downloadPdf() {
-    // Use html2canvas to capture summary
-    html2canvas(document.getElementById('summary-content')).then(canvas => {
-        const imgData = canvas.toDataURL('image/png');
-        const pdf = new jspdf.jsPDF();
-        const imgWidth = 210; // A4 width in mm
-        const imgHeight = canvas.height * imgWidth / canvas.width;
-        
-        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-        pdf.save(`ride-summary-${new Date().toISOString().split('T')[0]}.pdf`);
-    });
+    // Make sure jsPDF is properly loaded
+    if (typeof jspdf === 'undefined' || typeof jspdf.jsPDF === 'undefined') {
+        alert("PDF generation library not loaded. Please check your internet connection and try again.");
+        return;
+    }
+    
+    try {
+        // Use html2canvas to capture summary
+        html2canvas(document.getElementById('summary-content')).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jspdf.jsPDF();
+            const imgWidth = 210; // A4 width in mm
+            const imgHeight = canvas.height * imgWidth / canvas.width;
+            
+            pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+            pdf.save(`ride-summary-${new Date().toISOString().split('T')[0]}.pdf`);
+        }).catch(error => {
+            console.error("Error generating PDF:", error);
+            alert("Failed to generate PDF. Please try again later.");
+        });
+    } catch (error) {
+        console.error("Error in PDF download process:", error);
+        alert("Failed to generate PDF. Please try again later.");
+    }
 }
 
 // Show ride history
 function showHistory() {
     // Get rides from local storage
-    const rides = JSON.parse(localStorage.getItem('rides') || '[]');
+    let rides = [];
+    try {
+        rides = JSON.parse(localStorage.getItem('rides') || '[]');
+    } catch (error) {
+        console.error("Error parsing rides from local storage:", error);
+    }
     
     // Get history list element
     const historyList = document.getElementById('history-list');
@@ -593,43 +758,50 @@ function showHistory() {
     } else {
         noHistoryMsg.classList.add('hidden');
         
+        // Sort rides by date (newest first)
+        rides.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
         // Add each ride to the list
         rides.forEach(ride => {
-            const date = new Date(ride.date);
-            const dateString = date.toLocaleDateString();
-            const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            
-            // Format duration
-            const totalSeconds = Math.floor(ride.duration / 1000);
-            const hours = Math.floor(totalSeconds / 3600);
-            const minutes = Math.floor((totalSeconds % 3600) / 60);
-            const durationString = `${hours}h ${minutes}m`;
-            
-            const rideItem = document.createElement('div');
-            rideItem.className = 'bg-gray-100 p-4 rounded-lg';
-            rideItem.innerHTML = `
-                <div class="flex justify-between items-center">
-                    <div>
-                        <p class="font-semibold">${dateString} at ${timeString}</p>
-                        <div class="flex space-x-4 mt-1 text-sm text-gray-600">
-                            <p>${ride.distance.toFixed(2)} km</p>
-                            <p>${durationString}</p>
-                            <p>${ride.avgSpeed.toFixed(1)} km/h</p>
+            try {
+                const date = new Date(ride.date);
+                const dateString = date.toLocaleDateString();
+                const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                // Format duration
+                const totalSeconds = Math.floor(ride.duration / 1000);
+                const hours = Math.floor(totalSeconds / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                const durationString = `${hours}h ${minutes}m`;
+                
+                const rideItem = document.createElement('div');
+                rideItem.className = 'bg-gray-100 p-4 rounded-lg';
+                rideItem.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="font-semibold">${dateString} at ${timeString}</p>
+                            <div class="flex space-x-4 mt-1 text-sm text-gray-600">
+                                <p>${ride.distance.toFixed(2)} km</p>
+                                <p>${durationString}</p>
+                                <p>${ride.avgSpeed.toFixed(1)} km/h</p>
+                            </div>
                         </div>
+                        <button class="view-ride-btn text-blue-500 hover:text-blue-700" data-ride-id="${ride.id}">
+                            View
+                        </button>
                     </div>
-                    <button class="view-ride-btn text-blue-500 hover:text-blue-700" data-ride-id="${ride.id}">
-                        View
-                    </button>
-                </div>
-            `;
-            
-            historyList.appendChild(rideItem);
-            
-            // Add event listener to view button
-            rideItem.querySelector('.view-ride-btn').addEventListener('click', () => {
-                viewRide(ride);
-                hideHistory();
-            });
+                `;
+                
+                historyList.appendChild(rideItem);
+                
+                // Add event listener to view button
+                rideItem.querySelector('.view-ride-btn').addEventListener('click', () => {
+                    viewRide(ride);
+                    hideHistory();
+                });
+            } catch (error) {
+                console.error("Error rendering ride history item:", error);
+            }
         });
     }
     
@@ -644,53 +816,88 @@ function hideHistory() {
 
 // View a specific ride
 function viewRide(ride) {
-    // Reset map
-    if (routeLine) {
-        map.removeOverlay(routeLine);
-    }
-    
-    // Create route points from stored coordinates
-    const points = ride.routePoints.map(point => 
-        new mapkit.Coordinate(point.latitude, point.longitude)
-    );
-    
-    // Draw route on map
-    if (points.length > 1) {
-        routeLine = new mapkit.PolylineOverlay(points, {
-            style: {
-                lineWidth: 4,
-                strokeColor: "#3B82F6" // Blue color
-            }
-        });
+    try {
+        // Reset map
+        if (routeLine) {
+            map.removeOverlay(routeLine);
+        }
         
-        map.addOverlay(routeLine);
+        // Create route points from stored coordinates
+        const points = ride.routePoints.map(point => 
+            new mapkit.Coordinate(point.latitude, point.longitude)
+        );
         
-        // Set map region to show the entire route
-        map.showItems(points);
+        // Draw route on map
+        if (points.length > 1) {
+            routeLine = new mapkit.PolylineOverlay(points, {
+                style: {
+                    lineWidth: 4,
+                    strokeColor: "#3B82F6" // Blue color
+                }
+            });
+            
+            map.addOverlay(routeLine);
+            
+            // Set map region to show the entire route
+            map.showItems(points);
+        }
+        
+        // Update UI with ride data
+        document.getElementById('distance').textContent = `${ride.distance.toFixed(2)} km`;
+        
+        // Format duration
+        const totalSeconds = Math.floor(ride.duration / 1000);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        const durationString = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+        document.getElementById('duration').textContent = durationString;
+        
+        // Update speed
+        document.getElementById('speed').textContent = `${ride.avgSpeed.toFixed(1)} km/h`;
+        
+        // Update status
+        document.getElementById('status').textContent = 'Viewing History';
+        
+        // Store current points for potential re-use
+        routePoints = points;
+        totalDistance = ride.distance;
+        elapsedTime = ride.duration;
+        
+        console.log("Loaded historical ride with", points.length, "points");
+    } catch (error) {
+        console.error("Error viewing ride:", error);
+        alert("Failed to load the selected ride.");
     }
-    
-    // Update UI with ride data
-    document.getElementById('distance').textContent = `${ride.distance.toFixed(2)} km`;
-    
-    // Format duration
-    const totalSeconds = Math.floor(ride.duration / 1000);
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
-    const seconds = totalSeconds % 60;
-    const durationString = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
-    document.getElementById('duration').textContent = durationString;
-    
-    // Update speed
-    document.getElementById('speed').textContent = `${ride.avgSpeed.toFixed(1)} km/h`;
-    
-    // Update status
-    document.getElementById('status').textContent = 'Viewing History';
-    
-    // Store current points for potential re-use
-    routePoints = points;
-    totalDistance = ride.distance;
-    elapsedTime = ride.duration;
 }
+
+// Handle window resize to fix map rendering issues
+window.addEventListener('resize', function() {
+    if (map) {
+        // This forces the map to redraw and fixes some rendering issues
+        setTimeout(() => {
+            const currentCenter = map.center;
+            map.setCenter(currentCenter);
+        }, 100);
+    }
+});
+
+// Add debugging function
+window.checkMapHealth = function() {
+    console.log("Map object:", map);
+    console.log("MapKit loaded:", typeof mapkit !== 'undefined');
+    console.log("Current tracking state:", tracking ? "Tracking" : "Not tracking");
+    console.log("Current position:", lastPosition);
+    console.log("Route points:", routePoints.length);
+    console.log("Total distance:", totalDistance);
+    
+    if (typeof mapkit !== 'undefined' && !map) {
+        console.log("Map not initialized, trying to reinitialize...");
+        initializeMap();
+    }
+    
+    return "Map health check complete. Check console for details.";
+};
     </script>
 </body>
 </html>

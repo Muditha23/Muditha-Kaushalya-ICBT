@@ -2,331 +2,695 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vehicle Distance Tracker</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ride Tracker</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Apple MapKit JS -->
+    <script src="https://cdn.apple-mapkit.com/mk/5.x.x/mapkit.js"></script>
+    <!-- HTML2Canvas for PDF export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- jsPDF for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        /* Prevent text selection and improve touch interactions */
-        body {
-            touch-action: manipulation;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-        /* Ensure map takes full width on mobile */
-        #mapContainer {
+        #map {
             width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .controls {
+            z-index: 10;
         }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col touch-none">
-    <div class="container mx-auto px-4 py-4 md:py-8 max-w-xl">
-        <h1 class="text-2xl md:text-3xl font-bold text-center mb-4 md:mb-6">Vehicle Distance Tracker</h1>
-        
-        <div id="accuracyWarning" class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4 hidden">
-            <p class="font-bold">Low GPS Accuracy</p>
-            <p class="text-sm">For best results, ensure clear sky view and GPS signal.</p>
-        </div>
-
-        <div id="trackingControls" class="flex justify-center space-x-2 md:space-x-4 mb-4 md:mb-6">
-            <button id="startTrackingBtn" class="flex-1 bg-green-500 text-white px-3 py-2 md:px-4 md:py-2 rounded hover:bg-green-600 transition">
-                <span class="text-sm md:text-base">Start Tracking</span>
-            </button>
-            <button id="pauseTrackingBtn" class="flex-1 bg-yellow-500 text-white px-3 py-2 md:px-4 md:py-2 rounded hover:bg-yellow-600 transition hidden">
-                <span class="text-sm md:text-base">Pause</span>
-            </button>
-            <button id="stopTrackingBtn" class="flex-1 bg-red-500 text-white px-3 py-2 md:px-4 md:py-2 rounded hover:bg-red-600 transition hidden">
-                <span class="text-sm md:text-base">Stop</span>
+<body class="h-screen w-screen overflow-hidden bg-gray-100">
+    <!-- Map container -->
+    <div id="map" class="absolute inset-0"></div>
+    
+    <!-- Stats Panel -->
+    <div class="fixed top-0 left-0 right-0 bg-white bg-opacity-90 p-4 shadow-md controls">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-bold text-gray-800">Ride Tracker</h1>
+                <p class="text-sm text-gray-600" id="current-date"></p>
+            </div>
+            <button id="history-btn" class="bg-blue-500 text-white px-4 py-2 rounded-full text-sm">
+                History
             </button>
         </div>
-
-        <div id="trackingStats" class="bg-white shadow-md rounded-lg p-3 md:p-4 mb-4 md:mb-6">
-            <div class="grid grid-cols-3 gap-2 md:gap-4 text-center">
-                <div>
-                    <h3 class="font-semibold text-xs md:text-base">Distance</h3>
-                    <p id="distanceDisplay" class="text-sm md:text-base font-bold">0.00 km</p>
-                </div>
-                <div>
-                    <h3 class="font-semibold text-xs md:text-base">Duration</h3>
-                    <p id="durationDisplay" class="text-sm md:text-base">00:00:00</p>
-                </div>
-                <div>
-                    <h3 class="font-semibold text-xs md:text-base">Speed</h3>
-                    <p id="speedDisplay" class="text-sm md:text-base">0.00 km/h</p>
-                </div>
+        <div class="grid grid-cols-2 gap-4 mt-4">
+            <div class="bg-blue-100 p-3 rounded-lg">
+                <p class="text-xs text-gray-600">Distance</p>
+                <p class="text-2xl font-bold text-gray-800" id="distance">0.00 km</p>
+            </div>
+            <div class="bg-green-100 p-3 rounded-lg">
+                <p class="text-xs text-gray-600">Duration</p>
+                <p class="text-2xl font-bold text-gray-800" id="duration">00:00:00</p>
+            </div>
+            <div class="bg-purple-100 p-3 rounded-lg">
+                <p class="text-xs text-gray-600">Current Speed</p>
+                <p class="text-2xl font-bold text-gray-800" id="speed">0 km/h</p>
+            </div>
+            <div class="bg-yellow-100 p-3 rounded-lg">
+                <p class="text-xs text-gray-600">Status</p>
+                <p class="text-2xl font-bold text-gray-800" id="status">Stopped</p>
             </div>
         </div>
-
-        <div id="mapContainer" class="h-64 md:h-96 bg-gray-200 rounded-lg mb-4 md:mb-6 relative">
-            <div id="gpsAccuracyIndicator" class="absolute top-2 right-2 z-50 bg-white rounded-full p-2 shadow-md">
-                <span id="accuracyText" class="text-xs font-bold">GPS: N/A</span>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="fixed bottom-6 left-0 right-0 flex justify-center space-x-4 controls">
+        <button id="start-btn" class="bg-green-500 text-white rounded-full w-16 h-16 flex items-center justify-center shadow-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </button>
+        <button id="pause-btn" class="bg-yellow-500 text-white rounded-full w-16 h-16 flex items-center justify-center shadow-lg hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </button>
+        <button id="resume-btn" class="bg-blue-500 text-white rounded-full w-16 h-16 flex items-center justify-center shadow-lg hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        </button>
+        <button id="stop-btn" class="bg-red-500 text-white rounded-full w-16 h-16 flex items-center justify-center shadow-lg hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" />
+            </svg>
+        </button>
+        <button id="save-btn" class="bg-indigo-500 text-white rounded-full w-16 h-16 flex items-center justify-center shadow-lg hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+            </svg>
+        </button>
+    </div>
+    
+    <!-- History Modal -->
+    <div id="history-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-20">
+        <div class="bg-white p-6 rounded-lg w-full max-w-md max-h-[80vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Ride History</h2>
+                <button id="close-history-btn" class="text-gray-500 hover:text-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div id="history-list" class="space-y-4">
+                <!-- History items will be added dynamically -->
+                <p class="text-gray-500 text-center" id="no-history-msg">No ride history available</p>
             </div>
         </div>
-
-        <div id="settingsPanel" class="bg-white shadow-md rounded-lg p-3 md:p-4 mb-4">
-            <h2 class="text-lg md:text-xl font-bold mb-2">Tracking Settings</h2>
-            <div class="space-y-2">
-                <div class="flex items-center">
-                    <label class="flex-1 text-sm md:text-base">Distance Unit</label>
-                    <select id="distanceUnitSelect" class="form-select text-sm py-1 px-2 border rounded">
-                        <option value="km">Kilometers</option>
-                        <option value="miles">Miles</option>
-                        <option value="meters">Meters</option>
-                    </select>
+    </div>
+    
+    <!-- Ride Summary Modal -->
+    <div id="summary-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-20">
+        <div class="bg-white p-6 rounded-lg w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Ride Summary</h2>
+                <button id="close-summary-btn" class="text-gray-500 hover:text-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div id="summary-content">
+                <div class="border rounded-lg overflow-hidden mb-4">
+                    <div id="map-screenshot" class="w-full h-48 bg-gray-200"></div>
                 </div>
-                <div class="flex items-center">
-                    <label class="flex-1 text-sm md:text-base">Tracking Precision</label>
-                    <select id="trackingPrecisionSelect" class="form-select text-sm py-1 px-2 border rounded">
-                        <option value="high">High (More Battery Use)</option>
-                        <option value="balanced" selected>Balanced</option>
-                        <option value="low">Low (Less Accurate)</option>
-                    </select>
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <p class="text-sm text-gray-600">Total Distance</p>
+                        <p class="text-lg font-bold" id="summary-distance">0.00 km</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Total Duration</p>
+                        <p class="text-lg font-bold" id="summary-duration">00:00:00</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Average Speed</p>
+                        <p class="text-lg font-bold" id="summary-speed">0 km/h</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Date & Time</p>
+                        <p class="text-lg font-bold" id="summary-date">-</p>
+                    </div>
+                </div>
+                <div class="flex justify-center">
+                    <button id="download-pdf-btn" class="bg-blue-500 text-white px-4 py-2 rounded-lg w-full">
+                        Download as PDF
+                    </button>
                 </div>
             </div>
-        </div>
-
-        <div id="rideHistory" class="bg-white shadow-md rounded-lg p-3 md:p-4">
-            <h2 class="text-lg md:text-xl font-bold mb-2">Ride History</h2>
-            <div id="rideHistoryList" class="space-y-2 max-h-64 overflow-y-auto"></div>
         </div>
     </div>
 
+    <!-- Main JavaScript -->
     <script>
-        class VehicleTracker {
-    constructor() {
-        // Tracking configuration
-        this.DISTANCE_UNITS = {
-            'km': 1,
-            'miles': 0.621371,
-            'meters': 1000
-        };
-        this.PRECISION_CONFIG = {
-            'high': { 
-                enableHighAccuracy: true, 
-                maximumAge: 0, 
-                timeout: 5000,
-                minDistance: 1  // Minimum distance (meters) to record a point
-            },
-            'balanced': { 
-                enableHighAccuracy: true, 
-                maximumAge: 10000, 
-                timeout: 10000,
-                minDistance: 5
-            },
-            'low': { 
-                enableHighAccuracy: false, 
-                maximumAge: 30000, 
-                timeout: 15000,
-                minDistance: 10
-            }
-        };
+        // MapKit JS API token - You need to replace this with your actual token
+const MAPKIT_TOKEN = "YOUR_MAPKIT_TOKEN_HERE";
 
-        // State variables
-        this.map = null;
-        this.route = [];
-        this.polyline = null;
-        this.tracking = false;
-        this.pausedTracking = false;
-        this.totalDistance = 0;
-        this.startTime = null;
-        this.pauseTime = null;
-        this.totalPausedTime = 0;
-        this.watchId = null;
-        this.lastRecordedLocation = null;
+// Initialize variables
+let map;
+let tracking = false;
+let paused = false;
+let routePoints = [];
+let routeLine;
+let currentPosition;
+let watchId;
+let startTime;
+let elapsedTime = 0;
+let totalDistance = 0;
+let lastPosition = null;
+let timerInterval;
+let currentSpeed = 0;
 
-        // DOM Elements
-        this.startBtn = document.getElementById('startTrackingBtn');
-        this.pauseBtn = document.getElementById('pauseTrackingBtn');
-        this.stopBtn = document.getElementById('stopTrackingBtn');
-        this.distanceDisplay = document.getElementById('distanceDisplay');
-        this.durationDisplay = document.getElementById('durationDisplay');
-        this.speedDisplay = document.getElementById('speedDisplay');
-        this.mapContainer = document.getElementById('mapContainer');
-        this.rideHistoryList = document.getElementById('rideHistoryList');
-        this.accuracyWarning = document.getElementById('accuracyWarning');
-        this.accuracyIndicator = document.getElementById('gpsAccuracyIndicator');
-        this.accuracyText = document.getElementById('accuracyText');
-        this.distanceUnitSelect = document.getElementById('distanceUnitSelect');
-        this.trackingPrecisionSelect = document.getElementById('trackingPrecisionSelect');
+// Initialize the app
+document.addEventListener('DOMContentLoaded', () => {
+    // Set current date
+    const now = new Date();
+    document.getElementById('current-date').textContent = now.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
 
-        this.currentDistanceUnit = 'km';
-        this.currentPrecision = 'balanced';
+    // Initialize MapKit JS
+    initializeMap();
 
-        this.initializeMap();
-        this.bindEvents();
-    }
+    // Setup event listeners
+    setupEventListeners();
+});
 
-    initializeMap() {
-        this.map = L.map('mapContainer').setView([0, 0], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        }).addTo(this.map);
-    }
-
-    bindEvents() {
-        this.startBtn.addEventListener('click', () => this.startTracking());
-        this.pauseBtn.addEventListener('click', () => this.togglePause());
-        this.stopBtn.addEventListener('click', () => this.stopTracking());
-        this.distanceUnitSelect.addEventListener('change', () => {
-            this.currentDistanceUnit = this.distanceUnitSelect.value;
-            this.updateDistanceDisplay();
-        });
-        this.trackingPrecisionSelect.addEventListener('change', () => {
-            this.currentPrecision = this.trackingPrecisionSelect.value;
-        });
-    }
-
-    startTracking() {
-        if (this.tracking) return;
-
-        // Reset UI and state
-        this.tracking = true;
-        this.startTime = new Date();
-        this.route = [];
-        this.totalDistance = 0;
-        this.totalPausedTime = 0;
-        this.lastRecordedLocation = null;
-
-        this.startBtn.classList.add('hidden');
-        this.pauseBtn.classList.remove('hidden');
-        this.stopBtn.classList.remove('hidden');
-
-        // Get current location and start tracking
-        this.getCurrentPosition();
-        this.startTimer();
-    }
-
-    getCurrentPosition() {
-        const precisionConfig = this.PRECISION_CONFIG[this.currentPrecision];
-        
-        this.watchId = navigator.geolocation.watchPosition(
-            (position) => {
-                if (!this.tracking || this.pausedTracking) return;
-
-                // Check accuracy
-                const accuracy = position.coords.accuracy;
-                this.updateAccuracyIndicator(accuracy);
-
-                const newLocation = {
-                    lat: position.coords.latitude, 
-                    lng: position.coords.longitude,
-                    accuracy: accuracy,
-                    timestamp: position.timestamp
-                };
-
-                // Filter locations based on precision and minimum distance
-                if (this.shouldRecordLocation(newLocation)) {
-                    this.updateRoute(newLocation);
-                }
-            },
-            (error) => {
-                console.error('Geolocation error:', error);
-                this.handleGeolocationError(error);
-            },
-            precisionConfig
-        );
-    }
-
-    shouldRecordLocation(newLocation) {
-        // First location always recorded
-        if (!this.lastRecordedLocation) return true;
-
-        const distance = this.calculateHaversineDistance(
-            this.lastRecordedLocation.lat, this.lastRecordedLocation.lng,
-            newLocation.lat, newLocation.lng
-        );
-
-        // Minimum distance check (in kilometers, converted to meters)
-        const precisionConfig = this.PRECISION_CONFIG[this.currentPrecision];
-        return distance * 1000 >= precisionConfig.minDistance;
-    }
-
-    updateAccuracyIndicator(accuracy) {
-        let accuracyClass = 'text-red-600';
-        let accuracyText = 'Poor';
-
-        if (accuracy <= 10) {
-            accuracyClass = 'text-green-600';
-            accuracyText = 'Excellent';
-        } else if (accuracy <= 20) {
-            accuracyClass = 'text-green-500';
-            accuracyText = 'Good';
-        } else if (accuracy <= 50) {
-            accuracyClass = 'text-yellow-600';
-            accuracyText = 'Fair';
+// Initialize Apple Maps with MapKit JS
+function initializeMap() {
+    // Initialize MapKit JS
+    mapkit.init({
+        authorizationCallback: function(done) {
+            done(MAPKIT_TOKEN);
         }
+    });
 
-        this.accuracyText.textContent = `GPS: ${accuracyText}`;
-        this.accuracyText.className = `text-xs font-bold ${accuracyClass}`;
+    // Create a new map instance
+    map = new mapkit.Map('map', {
+        showsUserLocation: true,
+        tracksUserLocation: true
+    });
 
-        // Show/hide accuracy warning
-        if (accuracy > 50) {
-            this.accuracyWarning.classList.remove('hidden');
-        } else {
-            this.accuracyWarning.classList.add('hidden');
-        }
-    }
-
-    handleGeolocationError(error) {
-        let errorMessage = '';
-        switch(error.code) {
-            case error.PERMISSION_DENIED:
-                errorMessage = "Location access denied. Please enable location permissions.";
-                break;
-            case error.POSITION_UNAVAILABLE:
-                errorMessage = "Location information unavailable. Check your GPS signal.";
-                break;
-            case error.TIMEOUT:
-                errorMessage = "Location request timed out. Try again.";
-                break;
-            default:
-                errorMessage = "An unknown error occurred.";
-        }
-
-        // Display error (you could create a modal or toast for this)
-        alert(errorMessage);
-    }
-
-    updateRoute(newLocation) {
-        if (this.route.length > 0) {
-            const lastLocation = this.route[this.route.length - 1];
-            const distance = this.calculateHaversineDistance(
-                lastLocation.lat, lastLocation.lng, 
-                newLocation.lat, newLocation.lng
+    // Center map on user's current location
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+            const coordinate = new mapkit.Coordinate(
+                position.coords.latitude,
+                position.coords.longitude
             );
-            this.totalDistance += distance;
-            this.updateDistanceDisplay();
-            this.lastRecordedLocation = newLocation;
-        }
-
-        this.route.push(newLocation);
-
-        if (!this.polyline) {
-            this.polyline = L.polyline(
-                this.route.map(loc => [loc.lat, loc.lng]), 
-                {color: 'blue', weight: 5}
-            ).addTo(this.map);
-        } else {
-            this.polyline.setLatLngs(this.route.map(loc => [loc.lat, loc.lng]));
-        }
-
-        this.map.setView([newLocation.lat, newLocation.lng], 13);
+            map.setCenter(coordinate);
+            map.setRegion(new mapkit.CoordinateRegion(
+                coordinate,
+                new mapkit.CoordinateSpan(0.01, 0.01)
+            ));
+        }, error => {
+            console.error('Error getting location:', error);
+            alert('Unable to get your location. Please enable location services.');
+        });
+    } else {
+        alert('Geolocation is not supported by this browser.');
     }
-
-    updateDistanceDisplay() {
-        const convertedDistance = this.totalDistance * this.DISTANCE_UNITS[this.currentDistanceUnit];
-        this.distanceDisplay.textContent = `${convertedDistance.toFixed(2)} ${this.currentDistanceUnit}`;
-    }
-
-    // Rest of the methods remain similar to the previous implementation...
-    // (calculateHaversineDistance, toRadians, togglePause, stopTracking, etc.)
 }
 
-// Initialize the tracker
-const vehicleTracker = new VehicleTracker();
+// Setup all event listeners
+function setupEventListeners() {
+    // Button event listeners
+    document.getElementById('start-btn').addEventListener('click', startTracking);
+    document.getElementById('pause-btn').addEventListener('click', pauseTracking);
+    document.getElementById('resume-btn').addEventListener('click', resumeTracking);
+    document.getElementById('stop-btn').addEventListener('click', stopTracking);
+    document.getElementById('save-btn').addEventListener('click', saveRide);
+    document.getElementById('history-btn').addEventListener('click', showHistory);
+    document.getElementById('close-history-btn').addEventListener('click', hideHistory);
+    document.getElementById('close-summary-btn').addEventListener('click', hideSummary);
+    document.getElementById('download-pdf-btn').addEventListener('click', downloadPdf);
+}
+
+// Start tracking the ride
+function startTracking() {
+    if (tracking) return;
+    
+    tracking = true;
+    paused = false;
+    
+    // Update UI
+    document.getElementById('status').textContent = 'Active';
+    document.getElementById('start-btn').classList.add('hidden');
+    document.getElementById('pause-btn').classList.remove('hidden');
+    document.getElementById('stop-btn').classList.remove('hidden');
+    
+    // Reset data
+    routePoints = [];
+    totalDistance = 0;
+    document.getElementById('distance').textContent = '0.00 km';
+    document.getElementById('speed').textContent = '0 km/h';
+    
+    // Reset timer
+    startTime = new Date();
+    elapsedTime = 0;
+    updateTimer();
+    timerInterval = setInterval(updateTimer, 1000);
+    
+    // Start watching position
+    if (navigator.geolocation) {
+        watchId = navigator.geolocation.watchPosition(
+            updatePosition,
+            error => {
+                console.error('Error watching position:', error);
+                alert('Error tracking your location. Please check your location settings.');
+                stopTracking();
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 5000,
+                maximumAge: 0
+            }
+        );
+    }
+}
+
+// Update position as user moves
+function updatePosition(position) {
+    if (!tracking || paused) return;
+    
+    const latitude = position.coords.latitude;
+    const longitude = position.coords.longitude;
+    const accuracy = position.coords.accuracy;
+    
+    // If accuracy is poor, we might want to skip this point
+    if (accuracy > 100) return; // Skip if accuracy worse than 100 meters
+    
+    const coordinate = new mapkit.Coordinate(latitude, longitude);
+    
+    // Save the position
+    if (lastPosition) {
+        // Calculate distance from last point
+        const distance = calculateDistance(
+            lastPosition.latitude,
+            lastPosition.longitude,
+            latitude,
+            longitude
+        );
+        
+        // Calculate speed
+        const timeElapsed = (position.timestamp - lastPosition.timestamp) / 1000; // seconds
+        if (timeElapsed > 0) {
+            currentSpeed = (distance / timeElapsed) * 3600; // km/h
+            document.getElementById('speed').textContent = `${currentSpeed.toFixed(1)} km/h`;
+        }
+        
+        // Update total distance if it's a significant movement
+        if (distance > 0.001) { // Only count movements more than 1 meter
+            totalDistance += distance;
+            document.getElementById('distance').textContent = `${totalDistance.toFixed(2)} km`;
+            
+            // Add to route points
+            routePoints.push(coordinate);
+            
+            // Update the route line on the map
+            updateRouteLine();
+        }
+    } else {
+        // This is the first position
+        routePoints.push(coordinate);
+    }
+    
+    // Store last position
+    lastPosition = {
+        latitude,
+        longitude,
+        timestamp: position.timestamp
+    };
+    
+    // Center map on current position
+    map.setCenter(coordinate);
+}
+
+// Update the route line on the map
+function updateRouteLine() {
+    if (routeLine) {
+        map.removeOverlay(routeLine);
+    }
+    
+    if (routePoints.length > 1) {
+        routeLine = new mapkit.PolylineOverlay(routePoints, {
+            style: {
+                lineWidth: 4,
+                strokeColor: "#3B82F6" // Blue color
+            }
+        });
+        map.addOverlay(routeLine);
+    }
+}
+
+// Calculate distance between two coordinates using Haversine formula
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Radius of the earth in km
+    const dLat = deg2rad(lat2 - lat1);
+    const dLon = deg2rad(lon2 - lon1);
+    const a = 
+        Math.sin(dLat/2) * Math.sin(dLat/2) +
+        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * 
+        Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c; // Distance in km
+    return distance;
+}
+
+function deg2rad(deg) {
+    return deg * (Math.PI/180);
+}
+
+// Update the timer display
+function updateTimer() {
+    if (!tracking) return;
+    
+    let currentTime;
+    if (paused) {
+        currentTime = elapsedTime;
+    } else {
+        currentTime = new Date() - startTime + elapsedTime;
+    }
+    
+    // Convert milliseconds to hours:minutes:seconds
+    const totalSeconds = Math.floor(currentTime / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    
+    // Format the time
+    const timeString = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+    document.getElementById('duration').textContent = timeString;
+}
+
+// Pad numbers with leading zeros
+function pad(num) {
+    return num.toString().padStart(2, '0');
+}
+
+// Pause tracking
+function pauseTracking() {
+    if (!tracking || paused) return;
+    
+    paused = true;
+    
+    // Update UI
+    document.getElementById('status').textContent = 'Paused';
+    document.getElementById('pause-btn').classList.add('hidden');
+    document.getElementById('resume-btn').classList.remove('hidden');
+    
+    // Store elapsed time
+    elapsedTime += new Date() - startTime;
+    clearInterval(timerInterval);
+}
+
+// Resume tracking
+function resumeTracking() {
+    if (!tracking || !paused) return;
+    
+    paused = false;
+    
+    // Update UI
+    document.getElementById('status').textContent = 'Active';
+    document.getElementById('resume-btn').classList.add('hidden');
+    document.getElementById('pause-btn').classList.remove('hidden');
+    
+    // Reset start time
+    startTime = new Date();
+    timerInterval = setInterval(updateTimer, 1000);
+}
+
+// Stop tracking
+function stopTracking() {
+    if (!tracking) return;
+    
+    // Clear watch position
+    if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+    }
+    
+    // Stop timer
+    clearInterval(timerInterval);
+    
+    // Calculate total time
+    if (!paused) {
+        elapsedTime += new Date() - startTime;
+    }
+    
+    // Update UI
+    tracking = false;
+    paused = false;
+    document.getElementById('status').textContent = 'Stopped';
+    document.getElementById('start-btn').classList.remove('hidden');
+    document.getElementById('pause-btn').classList.add('hidden');
+    document.getElementById('resume-btn').classList.add('hidden');
+    document.getElementById('stop-btn').classList.add('hidden');
+    document.getElementById('save-btn').classList.remove('hidden');
+}
+
+// Save ride data
+function saveRide() {
+    if (tracking) return;
+    
+    // Calculate average speed
+    const durationInHours = elapsedTime / (1000 * 60 * 60);
+    const avgSpeed = durationInHours > 0 ? totalDistance / durationInHours : 0;
+    
+    // Create ride object
+    const ride = {
+        id: Date.now(),
+        date: new Date().toISOString(),
+        distance: totalDistance,
+        duration: elapsedTime,
+        avgSpeed: avgSpeed,
+        routePoints: routePoints.map(point => ({
+            latitude: point.latitude,
+            longitude: point.longitude
+        }))
+    };
+    
+    // Get existing rides from local storage
+    let rides = JSON.parse(localStorage.getItem('rides') || '[]');
+    
+    // Add new ride
+    rides.push(ride);
+    
+    // Save to local storage
+    localStorage.setItem('rides', JSON.stringify(rides));
+    
+    // Show summary
+    showSummary(ride);
+    
+    // Hide save button
+    document.getElementById('save-btn').classList.add('hidden');
+}
+
+// Show ride summary
+function showSummary(ride) {
+    // Set summary data
+    document.getElementById('summary-distance').textContent = `${ride.distance.toFixed(2)} km`;
+    
+    // Format duration
+    const totalSeconds = Math.floor(ride.duration / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const durationString = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+    document.getElementById('summary-duration').textContent = durationString;
+    
+    // Set average speed
+    document.getElementById('summary-speed').textContent = `${ride.avgSpeed.toFixed(1)} km/h`;
+    
+    // Set date
+    const date = new Date(ride.date);
+    document.getElementById('summary-date').textContent = date.toLocaleString();
+    
+    // Capture map screenshot
+    captureMapScreenshot();
+    
+    // Show modal
+    document.getElementById('summary-modal').classList.remove('hidden');
+}
+
+// Hide summary modal
+function hideSummary() {
+    document.getElementById('summary-modal').classList.add('hidden');
+}
+
+// Capture map screenshot
+function captureMapScreenshot() {
+    // Create a temporary map with the route for screenshot
+    const screenshotContainer = document.getElementById('map-screenshot');
+    screenshotContainer.innerHTML = '';
+    
+    // Create a temporary map
+    const tempMap = new mapkit.Map(screenshotContainer, {
+        showsUserLocation: false
+    });
+    
+    // Add route line
+    if (routePoints.length > 1) {
+        const points = routePoints.map(point => 
+            new mapkit.Coordinate(point.latitude || point.latitude, point.longitude || point.longitude)
+        );
+        
+        const routeOverlay = new mapkit.PolylineOverlay(points, {
+            style: {
+                lineWidth: 4,
+                strokeColor: "#3B82F6" // Blue color
+            }
+        });
+        
+        tempMap.addOverlay(routeOverlay);
+        
+        // Set map region to show the entire route
+        tempMap.showItems(points);
+    }
+}
+
+// Download summary as PDF
+function downloadPdf() {
+    // Use html2canvas to capture summary
+    html2canvas(document.getElementById('summary-content')).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jspdf.jsPDF();
+        const imgWidth = 210; // A4 width in mm
+        const imgHeight = canvas.height * imgWidth / canvas.width;
+        
+        pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+        pdf.save(`ride-summary-${new Date().toISOString().split('T')[0]}.pdf`);
+    });
+}
+
+// Show ride history
+function showHistory() {
+    // Get rides from local storage
+    const rides = JSON.parse(localStorage.getItem('rides') || '[]');
+    
+    // Get history list element
+    const historyList = document.getElementById('history-list');
+    const noHistoryMsg = document.getElementById('no-history-msg');
+    
+    // Clear list
+    historyList.innerHTML = '';
+    
+    if (rides.length === 0) {
+        noHistoryMsg.classList.remove('hidden');
+    } else {
+        noHistoryMsg.classList.add('hidden');
+        
+        // Add each ride to the list
+        rides.forEach(ride => {
+            const date = new Date(ride.date);
+            const dateString = date.toLocaleDateString();
+            const timeString = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            // Format duration
+            const totalSeconds = Math.floor(ride.duration / 1000);
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const durationString = `${hours}h ${minutes}m`;
+            
+            const rideItem = document.createElement('div');
+            rideItem.className = 'bg-gray-100 p-4 rounded-lg';
+            rideItem.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="font-semibold">${dateString} at ${timeString}</p>
+                        <div class="flex space-x-4 mt-1 text-sm text-gray-600">
+                            <p>${ride.distance.toFixed(2)} km</p>
+                            <p>${durationString}</p>
+                            <p>${ride.avgSpeed.toFixed(1)} km/h</p>
+                        </div>
+                    </div>
+                    <button class="view-ride-btn text-blue-500 hover:text-blue-700" data-ride-id="${ride.id}">
+                        View
+                    </button>
+                </div>
+            `;
+            
+            historyList.appendChild(rideItem);
+            
+            // Add event listener to view button
+            rideItem.querySelector('.view-ride-btn').addEventListener('click', () => {
+                viewRide(ride);
+                hideHistory();
+            });
+        });
+    }
+    
+    // Show modal
+    document.getElementById('history-modal').classList.remove('hidden');
+}
+
+// Hide history modal
+function hideHistory() {
+    document.getElementById('history-modal').classList.add('hidden');
+}
+
+// View a specific ride
+function viewRide(ride) {
+    // Reset map
+    if (routeLine) {
+        map.removeOverlay(routeLine);
+    }
+    
+    // Create route points from stored coordinates
+    const points = ride.routePoints.map(point => 
+        new mapkit.Coordinate(point.latitude, point.longitude)
+    );
+    
+    // Draw route on map
+    if (points.length > 1) {
+        routeLine = new mapkit.PolylineOverlay(points, {
+            style: {
+                lineWidth: 4,
+                strokeColor: "#3B82F6" // Blue color
+            }
+        });
+        
+        map.addOverlay(routeLine);
+        
+        // Set map region to show the entire route
+        map.showItems(points);
+    }
+    
+    // Update UI with ride data
+    document.getElementById('distance').textContent = `${ride.distance.toFixed(2)} km`;
+    
+    // Format duration
+    const totalSeconds = Math.floor(ride.duration / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const durationString = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+    document.getElementById('duration').textContent = durationString;
+    
+    // Update speed
+    document.getElementById('speed').textContent = `${ride.avgSpeed.toFixed(1)} km/h`;
+    
+    // Update status
+    document.getElementById('status').textContent = 'Viewing History';
+    
+    // Store current points for potential re-use
+    routePoints = points;
+    totalDistance = ride.distance;
+    elapsedTime = ride.duration;
+}
     </script>
 </body>
 </html>

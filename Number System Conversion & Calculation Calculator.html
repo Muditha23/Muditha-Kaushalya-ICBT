@@ -385,7 +385,6 @@
 
 <script>
   // Number System Conversion and Calculation Calculator
-// With 1's and 2's Complement Implementation
 
 const bases = {
     'binary': 2,
@@ -395,7 +394,7 @@ const bases = {
 };
 
 function validateInput(number, base) {
-    // Regex to match numbers with optional decimal point
+    // Regex to match decimal numbers with optional decimal point
     const validationRules = {
         'binary': /^-?[01]+(\.[01]+)?$/,
         'decimal': /^-?\d+(\.\d+)?$/,
@@ -629,230 +628,54 @@ function convertFromDecimal(decimal, toBase) {
     };
 }
 
-// NEW FUNCTIONS FOR 1'S COMPLEMENT AND 2'S COMPLEMENT
+function convertNumber() {
+    const fromSystem = document.getElementById('fromSystem').value;
+    const toSystem = document.getElementById('toSystem').value;
+    const inputNumber = document.getElementById('inputNumber').value;
+    const conversionStepsElement = document.getElementById('conversionSteps');
+    const resultElement = document.getElementById('result');
 
-/**
- * Calculates the 1's complement of a binary number
- * @param {string} binaryStr - The binary number as a string
- * @param {number} bitLength - Optional bit length for padding (e.g., 8, 16, 32)
- * @returns {Object} The 1's complement result and calculation steps
- */
-function onesComplement(binaryStr, bitLength = null) {
-    // Validate input
-    if (!/^[01]+$/.test(binaryStr)) {
-        throw new Error('Input must be a valid binary number (0s and 1s only)');
-    }
+    try {
+        // First convert to decimal
+        const decimalConversion = convertToDecimal(inputNumber, fromSystem);
+        
+        // Then convert from decimal to target base
+        const finalConversion = convertFromDecimal(decimalConversion.value, toSystem);
+        
+        // Combine steps
+        const allSteps = [
+            ...decimalConversion.steps,
+            ...finalConversion.steps
+        ];
 
-    let steps = [`🔍 Calculating 1's Complement of ${binaryStr}`];
-    
-    // Determine bit length if not specified
-    if (!bitLength) {
-        bitLength = binaryStr.length;
-    }
-    
-    // Pad the binary string if necessary
-    const paddedBinary = binaryStr.padStart(bitLength, '0');
-    if (paddedBinary.length > binaryStr.length) {
-        steps.push(`Padded to ${bitLength} bits: ${paddedBinary}`);
-    }
-    
-    // Calculate 1's complement by flipping each bit
-    let complement = '';
-    let detailedSteps = [];
-    
-    for (let i = 0; i < paddedBinary.length; i++) {
-        const originalBit = paddedBinary[i];
-        const flippedBit = originalBit === '0' ? '1' : '0';
-        complement += flippedBit;
-        detailedSteps.push(`Bit ${i+1}: ${originalBit} → ${flippedBit}`);
-    }
-    
-    steps.push(`🧮 Flipping each bit (0→1, 1→0):`);
-    steps.push(detailedSteps.join('\n'));
-    steps.push(`✅ 1's Complement Result: ${complement}`);
-    
-    return {
-        value: complement,
-        steps: steps
-    };
-}
-
-/**
- * Calculates the 2's complement of a binary number
- * @param {string} binaryStr - The binary number as a string
- * @param {number} bitLength - Optional bit length for padding (e.g., 8, 16, 32)
- * @returns {Object} The 2's complement result and calculation steps
- */
-function twosComplement(binaryStr, bitLength = null) {
-    // Validate input
-    if (!/^[01]+$/.test(binaryStr)) {
-        throw new Error('Input must be a valid binary number (0s and 1s only)');
-    }
-
-    let steps = [`🔍 Calculating 2's Complement of ${binaryStr}`];
-    
-    // Step 1: Calculate 1's complement
-    const onesResult = onesComplement(binaryStr, bitLength);
-    steps = steps.concat(onesResult.steps);
-    
-    // Step 2: Add 1 to the result
-    steps.push(`🧮 Adding 1 to the 1's complement:`);
-    
-    let carry = 1;
-    let twosComp = '';
-    const onesComp = onesResult.value;
-    
-    // Process addition from right to left
-    for (let i = onesComp.length - 1; i >= 0; i--) {
-        const bit = parseInt(onesComp[i]);
-        const sum = bit + carry;
+        // Display conversion steps
+        conversionStepsElement.value = allSteps.join('\n');
         
-        if (sum === 2) {
-            twosComp = '0' + twosComp;
-            carry = 1;
-            steps.push(`Position ${i+1}: ${bit} + ${carry} = 2, write 0, carry 1`);
-        } else {
-            twosComp = sum + twosComp;
-            carry = 0;
-            steps.push(`Position ${i+1}: ${bit} + ${carry || 1} = ${sum}, write ${sum}, carry 0`);
-        }
-    }
-    
-    // If there's still a carry and we're allowed to expand the bit length
-    if (carry === 1 && !bitLength) {
-        twosComp = '1' + twosComp;
-        steps.push(`Extra position: Added carry 1`);
-    }
-    
-    steps.push(`✅ 2's Complement Result: ${twosComp}`);
-    
-    return {
-        value: twosComp,
-        steps: steps
-    };
-}
-
-/**
- * Converts a decimal number to its 2's complement representation
- * @param {number} decimal - The decimal number
- * @param {number} bitLength - The bit length for the result (e.g., 8, 16, 32)
- * @returns {Object} The 2's complement representation and steps
- */
-function decimalToTwosComplement(decimal, bitLength) {
-    let steps = [`🔍 Converting decimal ${decimal} to ${bitLength}-bit 2's complement`];
-    
-    if (!Number.isInteger(decimal)) {
-        throw new Error('Input must be an integer for 2\'s complement representation');
-    }
-    
-    // Determine if the number is negative
-    const isNegative = decimal < 0;
-    const absValue = Math.abs(decimal);
-    
-    // Check if the number can be represented in the given bit length
-    const maxValue = Math.pow(2, bitLength - 1) - 1;
-    const minValue = -Math.pow(2, bitLength - 1);
-    
-    if (decimal > maxValue || decimal < minValue) {
-        throw new Error(`Number ${decimal} cannot be represented in ${bitLength} bits using 2's complement`);
-    }
-    
-    if (!isNegative) {
-        // For positive numbers, just convert to binary and pad
-        const binary = absValue.toString(2).padStart(bitLength, '0');
-        steps.push(`Number is positive: Convert ${absValue} to binary: ${binary}`);
-        return { value: binary, steps: steps };
-    } else {
-        // For negative numbers, use 2's complement method
-        steps.push(`Number is negative: Apply 2's complement method`);
-        
-        // Step 1: Convert absolute value to binary
-        const absBinary = absValue.toString(2).padStart(bitLength, '0');
-        steps.push(`1. Convert absolute value ${absValue} to binary: ${absBinary}`);
-        
-        // Step 2: Calculate 2's complement
-        const twosComp = twosComplement(absBinary, bitLength);
-        steps = steps.concat(twosComp.steps);
-        
-        return { value: twosComp.value, steps: steps };
-    }
-}
-
-/**
- * Converts a 2's complement binary number to decimal
- * @param {string} binaryStr - The 2's complement binary string
- * @returns {Object} The decimal value and calculation steps
- */
-function twosComplementToDecimal(binaryStr) {
-    // Validate input
-    if (!/^[01]+$/.test(binaryStr)) {
-        throw new Error('Input must be a valid binary number (0s and 1s only)');
-    }
-
-    let steps = [`🔍 Converting 2's complement binary ${binaryStr} to decimal`];
-    
-    // Check if the number is negative (MSB is 1)
-    const isNegative = binaryStr[0] === '1';
-    
-    if (!isNegative) {
-        // For positive numbers, simply convert to decimal
-        const decimal = parseInt(binaryStr, 2);
-        steps.push(`MSB is 0, so this is a positive number`);
-        steps.push(`Convert directly to decimal: ${decimal}`);
-        return { value: decimal, steps: steps };
-    } else {
-        // For negative numbers, calculate using 2's complement
-        steps.push(`MSB is 1, so this is a negative number`);
-        steps.push(`To find the value, invert all bits and add 1, then negate the result`);
-        
-        // Calculate 2's complement
-        const onesComp = onesComplement(binaryStr);
-        steps = steps.concat(onesComp.steps);
-        
-        // Add 1 to get the magnitude
-        let carry = 1;
-        let magnitude = '';
-        const onesCompVal = onesComp.value;
-        
-        for (let i = onesCompVal.length - 1; i >= 0; i--) {
-            const bit = parseInt(onesCompVal[i]);
-            const sum = bit + carry;
-            
-            if (sum === 2) {
-                magnitude = '0' + magnitude;
-                carry = 1;
-            } else {
-                magnitude = sum + magnitude;
-                carry = 0;
-            }
-        }
-        
-        // Convert magnitude to decimal and negate
-        const decimalValue = -parseInt(magnitude, 2);
-        steps.push(`After adding 1: ${magnitude}`);
-        steps.push(`Convert to decimal and negate: ${decimalValue}`);
-        
-        return { value: decimalValue, steps: steps };
+        // Display result
+        resultElement.value = finalConversion.value;
+    } catch (error) {
+        conversionStepsElement.value = `Error: ${error.message}`;
+        resultElement.value = '';
     }
 }
 
 function calculateOperation(operation) {
-    try {
-        const num1System = document.getElementById('num1System').value;
-        const num2System = document.getElementById('num2System').value;
-        const outputSystem = document.getElementById('outputSystem').value;
-        const num1 = document.getElementById('num1').value;
-        const num2 = document.getElementById('num2').value;
-        const calculationStepsElement = document.getElementById('calculationSteps');
-        const calculationResultElement = document.getElementById('calculationResult');
-        const calculationResultDecimalElement = document.getElementById('calculationResultDecimal');
+    const num1System = document.getElementById('num1System').value;
+    const num2System = document.getElementById('num2System').value;
+    const outputSystem = document.getElementById('outputSystem').value;
+    const num1 = document.getElementById('num1').value;
+    const num2 = document.getElementById('num2').value;
+    const calculationStepsElement = document.getElementById('calculationSteps');
+    const calculationResultElement = document.getElementById('calculationResult');
+    const calculationResultDecimalElement = document.getElementById('calculationResultDecimal');
 
+    try {
         // Convert both numbers to decimal first
         const decimal1 = convertToDecimal(num1, num1System);
         const decimal2 = convertToDecimal(num2, num2System);
 
         // Perform the operation
-        let decimalResult;
+        let result, decimalResult;
         let steps = [
             ...decimal1.steps,
             ...decimal2.steps,
@@ -898,126 +721,6 @@ function calculateOperation(operation) {
         calculationResultDecimalElement.value = '';
     }
 }
-
-// Function to calculate 1's complement from UI
-function calculateOnesComplement() {
-    try {
-        const binaryInput = document.getElementById('complementBinary').value;
-        const bitLength = parseInt(document.getElementById('complementBitLength').value) || null;
-        const complementStepsElement = document.getElementById('complementSteps');
-        const complementResultElement = document.getElementById('complementResult');
-        
-        // Calculate the 1's complement
-        const result = onesComplement(binaryInput, bitLength);
-        
-        // Display steps and result
-        complementStepsElement.value = result.steps.join('\n');
-        complementResultElement.value = result.value;
-    } catch (error) {
-        const complementStepsElement = document.getElementById('complementSteps');
-        const complementResultElement = document.getElementById('complementResult');
-        complementStepsElement.value = `Error: ${error.message}`;
-        complementResultElement.value = '';
-    }
-}
-
-// Function to calculate 2's complement from UI
-function calculateTwosComplement() {
-    try {
-        const binaryInput = document.getElementById('complementBinary').value;
-        const bitLength = parseInt(document.getElementById('complementBitLength').value) || null;
-        const complementStepsElement = document.getElementById('complementSteps');
-        const complementResultElement = document.getElementById('complementResult');
-        
-        // Calculate the 2's complement
-        const result = twosComplement(binaryInput, bitLength);
-        
-        // Display steps and result
-        complementStepsElement.value = result.steps.join('\n');
-        complementResultElement.value = result.value;
-    } catch (error) {
-        const complementStepsElement = document.getElementById('complementSteps');
-        const complementResultElement = document.getElementById('complementResult');
-        complementStepsElement.value = `Error: ${error.message}`;
-        complementResultElement.value = '';
-    }
-}
-
-// Function to convert decimal to 2's complement
-function decimalToTwosComplementUI() {
-    try {
-        const decimalInput = parseInt(document.getElementById('decimalComplement').value);
-        const bitLength = parseInt(document.getElementById('decimalComplementBitLength').value);
-        const decimalComplementStepsElement = document.getElementById('decimalComplementSteps');
-        const decimalComplementResultElement = document.getElementById('decimalComplementResult');
-        
-        // Calculate the 2's complement representation
-        const result = decimalToTwosComplement(decimalInput, bitLength);
-        
-        // Display steps and result
-        decimalComplementStepsElement.value = result.steps.join('\n');
-        decimalComplementResultElement.value = result.value;
-    } catch (error) {
-        const decimalComplementStepsElement = document.getElementById('decimalComplementSteps');
-        const decimalComplementResultElement = document.getElementById('decimalComplementResult')
-        decimalComplementStepsElement.value = `Error: ${error.message}`;
-        decimalComplementResultElement.value = '';
-    }
-}
-
-// Function to convert 2's complement to decimal
-function twosComplementToDecimalUI() {
-    try {
-        const binaryInput = document.getElementById('twosComplementBinary').value;
-        const twosComplementToDecimalStepsElement = document.getElementById('twosComplementToDecimalSteps');
-        const twosComplementToDecimalResultElement = document.getElementById('twosComplementToDecimalResult');
-        
-        // Convert the 2's complement to decimal
-        const result = twosComplementToDecimal(binaryInput);
-        
-        // Display steps and result
-        twosComplementToDecimalStepsElement.value = result.steps.join('\n');
-        twosComplementToDecimalResultElement.value = result.value;
-    } catch (error) {
-        const twosComplementToDecimalStepsElement = document.getElementById('twosComplementToDecimalSteps');
-        const twosComplementToDecimalResultElement = document.getElementById('twosComplementToDecimalResult');
-        twosComplementToDecimalStepsElement.value = `Error: ${error.message}`;
-        twosComplementToDecimalResultElement.value = '';
-    }
-}
-
-function convertNumber() {
-    const fromSystem = document.getElementById('fromSystem').value;
-    const toSystem = document.getElementById('toSystem').value;
-    const inputNumber = document.getElementById('inputNumber').value;
-    const conversionStepsElement = document.getElementById('conversionSteps');
-    const resultElement = document.getElementById('result');
-
-    try {
-        // First convert to decimal
-        const decimalConversion = convertToDecimal(inputNumber, fromSystem);
-        
-        // Then convert from decimal to target base
-        const finalConversion = convertFromDecimal(decimalConversion.value, toSystem);
-        
-        // Combine steps
-        const allSteps = [
-            ...decimalConversion.steps,
-            ...finalConversion.steps
-        ];
-
-        // Display conversion steps
-        conversionStepsElement.value = allSteps.join('\n');
-        
-        // Display result
-        resultElement.value = finalConversion.value;
-    } catch (error) {
-        conversionStepsElement.value = `Error: ${error.message}`;
-        resultElement.value = '';
-    }
-}
-
-
          // Firebase configuration
     const firebaseConfig = {
     apiKey: "AIzaSyC3vHKWQPYGgN5q2i1u_BBh0ApVFG_8KIs",

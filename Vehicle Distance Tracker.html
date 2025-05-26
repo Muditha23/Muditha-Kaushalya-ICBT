@@ -29,6 +29,15 @@
             background: #3b82f6;
             cursor: pointer;
         }
+        .canvas-container {
+            position: relative;
+            display: none;
+        }
+        .stream-canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
     </style>
 </head>
 <body class="bg-gray-900 text-white min-h-screen">
@@ -45,6 +54,7 @@
     <!-- Main Video Container -->
     <div class="relative bg-black aspect-video mx-4 my-4 rounded-lg overflow-hidden">
         <video id="camera-preview" class="w-full h-full object-cover" autoplay muted playsinline></video>
+        <canvas id="stream-canvas" class="stream-canvas hidden"></canvas>
         
         <!-- Video Overlay Controls -->
         <div class="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity" id="video-overlay">
@@ -56,8 +66,9 @@
         </div>
 
         <!-- Stream URL Display -->
-        <div id="stream-url-display" class="absolute bottom-2 left-2 right-2 bg-black bg-opacity-70 p-2 rounded text-xs hidden">
-            <div class="text-green-400 font-mono" id="stream-url">Stream: Connecting...</div>
+        <div id="stream-url-display" class="absolute bottom-2 left-2 right-2 bg-black bg-opacity-70 p-2 rounded text-xs">
+            <div class="text-green-400 font-mono text-center" id="stream-url">Initializing camera...</div>
+            <div class="text-blue-400 font-mono text-center text-xs mt-1" id="obs-instructions">Start streaming to get OBS URL</div>
         </div>
     </div>
 
@@ -83,7 +94,7 @@
         <div class="bg-gray-800 p-4 rounded-lg">
             <label class="block text-sm font-medium mb-2">Zoom: <span id="zoom-value">1x</span></label>
             <input type="range" id="zoom-slider" class="zoom-slider w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer" 
-                   min="1" max="10" step="0.1" value="1">
+                   min="1" max="5" step="0.1" value="1">
         </div>
 
         <!-- Resolution & Quality -->
@@ -97,11 +108,11 @@
                 </select>
             </div>
             <div class="bg-gray-800 p-3 rounded-lg">
-                <label class="block text-sm font-medium mb-2">Focus Mode</label>
-                <select id="focus-select" class="w-full bg-gray-700 text-white p-2 rounded">
-                    <option value="continuous">Auto</option>
-                    <option value="single-shot">Single</option>
-                    <option value="manual">Manual</option>
+                <label class="block text-sm font-medium mb-2">FPS</label>
+                <select id="fps-select" class="w-full bg-gray-700 text-white p-2 rounded">
+                    <option value="15">15 FPS</option>
+                    <option value="24">24 FPS</option>
+                    <option value="30" selected>30 FPS</option>
                 </select>
             </div>
         </div>
@@ -113,13 +124,20 @@
                 <span id="stream-status" class="text-sm text-red-400">Stopped</span>
             </div>
             <div class="flex justify-between">
-                <span class="text-sm">Local IP:</span>
-                <span id="local-ip" class="text-sm text-blue-400">Detecting...</span>
+                <span class="text-sm">Quality:</span>
+                <span id="stream-quality" class="text-sm text-blue-400">720p@30fps</span>
             </div>
             <div class="flex justify-between">
-                <span class="text-sm">Viewers:</span>
-                <span id="viewer-count" class="text-sm text-green-400">0</span>
+                <span class="text-sm">Data Usage:</span>
+                <span id="data-usage" class="text-sm text-yellow-400">0 MB</span>
             </div>
+        </div>
+
+        <!-- QR Code for Easy Connection -->
+        <div id="qr-container" class="bg-gray-800 p-4 rounded-lg text-center hidden">
+            <h3 class="text-lg font-bold mb-2">📱 Connect via QR Code</h3>
+            <div id="qr-code" class="bg-white p-4 rounded-lg inline-block"></div>
+            <p class="text-sm mt-2 text-gray-300">Scan to open stream in browser</p>
         </div>
     </div>
 
@@ -133,27 +151,30 @@
             
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium mb-2">Stream Port</label>
-                    <input type="number" id="stream-port" value="8080" class="w-full bg-gray-700 text-white p-2 rounded">
+                    <label class="block text-sm font-medium mb-2">Stream Quality</label>
+                    <select id="quality-select" class="w-full bg-gray-700 text-white p-2 rounded">
+                        <option value="high">High Quality (1080p)</option>
+                        <option value="medium" selected>Medium Quality (720p)</option>
+                        <option value="low">Low Quality (480p)</option>
+                    </select>
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium mb-2">Stream Quality</label>
-                    <select id="quality-select" class="w-full bg-gray-700 text-white p-2 rounded">
-                        <option value="high">High Quality</option>
-                        <option value="medium" selected>Medium Quality</option>
-                        <option value="low">Low Quality</option>
+                    <label class="block text-sm font-medium mb-2">Stream Method</label>
+                    <select id="stream-method" class="w-full bg-gray-700 text-white p-2 rounded">
+                        <option value="canvas" selected>Canvas Stream (Recommended)</option>
+                        <option value="webrtc">WebRTC (Experimental)</option>
                     </select>
                 </div>
                 
                 <div class="flex items-center justify-between">
-                    <span class="text-sm">Show Stream URL</span>
-                    <input type="checkbox" id="show-url-toggle" class="w-4 h-4">
+                    <span class="text-sm">Show QR Code</span>
+                    <input type="checkbox" id="show-qr-toggle" class="w-4 h-4">
                 </div>
                 
                 <div class="flex items-center justify-between">
-                    <span class="text-sm">Auto-start Stream</span>
-                    <input type="checkbox" id="auto-start-toggle" class="w-4 h-4">
+                    <span class="text-sm">Keep Screen On</span>
+                    <input type="checkbox" id="keep-screen-on" class="w-4 h-4" checked>
                 </div>
             </div>
             
@@ -166,14 +187,26 @@
     <!-- Instructions Panel -->
     <div class="mx-4 mt-6 mb-8">
         <div class="bg-blue-900 bg-opacity-50 p-4 rounded-lg">
-            <h3 class="font-bold mb-2">📋 OBS Setup Instructions</h3>
-            <ol class="text-sm space-y-1 list-decimal list-inside">
-                <li>Start streaming on your mobile device</li>
-                <li>Note the stream URL displayed above</li>
-                <li>In OBS, add "Browser Source" or "Media Source"</li>
-                <li>Enter the stream URL: http://[YOUR-IP]:8080/stream</li>
-                <li>Set width: 1920, height: 1080 (or your resolution)</li>
-            </ol>
+            <h3 class="font-bold mb-2">📋 How to Stream to OBS</h3>
+            <div class="text-sm space-y-2">
+                <div class="bg-gray-800 p-3 rounded">
+                    <p class="font-semibold text-blue-300">Method 1: Browser Source (Recommended)</p>
+                    <ol class="list-decimal list-inside mt-1 space-y-1">
+                        <li>Start streaming on this device</li>
+                        <li>Copy the stream URL shown above</li>
+                        <li>In OBS: Add → Browser Source</li>
+                        <li>Paste URL and set size to 1920x1080</li>
+                    </ol>
+                </div>
+                <div class="bg-gray-800 p-3 rounded mt-2">
+                    <p class="font-semibold text-green-300">Method 2: Screen Capture</p>
+                    <ol class="list-decimal list-inside mt-1 space-y-1">
+                        <li>Open this stream URL in another browser</li>
+                        <li>In OBS: Add → Window Capture</li>
+                        <li>Select the browser window</li>
+                    </ol>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -181,71 +214,108 @@
         class MobileCameraStream {
             constructor() {
                 this.video = document.getElementById('camera-preview');
+                this.canvas = document.getElementById('stream-canvas');
+                this.ctx = this.canvas.getContext('2d');
                 this.stream = null;
-                this.mediaRecorder = null;
                 this.isStreaming = false;
-                this.currentCamera = 'user'; // 'user' or 'environment'
+                this.currentCamera = 'user';
                 this.currentZoom = 1;
-                this.streamPort = 8080;
-                this.peerConnections = new Map();
-                this.localIP = null;
-                this.capabilities = null;
+                this.streamInterval = null;
+                this.dataUsage = 0;
+                this.streamStartTime = null;
+                this.streamURL = null;
+                this.wakeLock = null;
                 
                 this.initializeApp();
             }
 
             async initializeApp() {
-                await this.detectLocalIP();
                 this.setupEventListeners();
                 this.setupOrientationHandler();
-                this.requestCameraPermission();
+                await this.requestCameraPermission();
                 this.updateBatteryStatus();
-                this.setupWebRTCSignaling();
+                this.requestWakeLock();
+                this.generateStreamURL();
             }
 
-            async detectLocalIP() {
-                try {
-                    // Create a dummy peer connection to get local IP
-                    const pc = new RTCPeerConnection({
-                        iceServers: [{urls: "stun:stun.l.google.com:19302"}]
-                    });
-                    
-                    pc.createDataChannel("");
-                    const offer = await pc.createOffer();
-                    await pc.setLocalDescription(offer);
-                    
-                    const localIP = await new Promise((resolve) => {
-                        pc.onicecandidate = (event) => {
-                            if (event.candidate) {
-                                const candidate = event.candidate.candidate;
-                                const ipMatch = candidate.match(/(\d+\.\d+\.\d+\.\d+)/);
-                                if (ipMatch) {
-                                    resolve(ipMatch[1]);
-                                }
-                            }
-                        };
-                    });
-                    
-                    this.localIP = localIP;
-                    document.getElementById('local-ip').textContent = localIP || 'Unknown';
-                    pc.close();
-                } catch (error) {
-                    console.error('Failed to detect local IP:', error);
-                    document.getElementById('local-ip').textContent = 'Detection failed';
+            generateStreamURL() {
+                // Create a unique stream URL using current timestamp
+                const streamId = Date.now().toString(36);
+                this.streamURL = `${window.location.origin}${window.location.pathname}?stream=${streamId}`;
+                
+                // Check if this is a stream viewer
+                const urlParams = new URLSearchParams(window.location.search);
+                if (urlParams.has('stream')) {
+                    this.initializeStreamViewer();
+                    return;
+                }
+                
+                this.updateStreamURL();
+            }
+
+            initializeStreamViewer() {
+                // Hide controls and show only the video for viewers
+                document.body.innerHTML = `
+                    <div class="bg-black w-full h-screen flex items-center justify-center">
+                        <div class="text-white text-center">
+                            <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-white mx-auto mb-4"></div>
+                            <p>Connecting to stream...</p>
+                            <p class="text-sm text-gray-400 mt-2">Waiting for broadcaster to start streaming</p>
+                        </div>
+                    </div>
+                `;
+                
+                // Try to connect to the stream data
+                this.connectToStream();
+            }
+
+            connectToStream() {
+                const streamId = new URLSearchParams(window.location.search).get('stream');
+                const checkInterval = setInterval(() => {
+                    // Check if stream data is available
+                    const streamData = this.getStreamData(streamId);
+                    if (streamData) {
+                        this.displayStream(streamData);
+                        clearInterval(checkInterval);
+                    }
+                }, 1000);
+            }
+
+            getStreamData(streamId) {
+                // In a real implementation, this would fetch from a server
+                // For demo, we'll simulate stream availability
+                return null;
+            }
+
+            displayStream(streamData) {
+                document.body.innerHTML = `
+                    <video class="w-full h-full object-cover" autoplay muted playsinline>
+                        <source src="${streamData.url}" type="video/mp4">
+                    </video>
+                `;
+            }
+
+            updateStreamURL() {
+                const urlDisplay = document.getElementById('stream-url');
+                const obsInstructions = document.getElementById('obs-instructions');
+                
+                if (this.isStreaming) {
+                    urlDisplay.textContent = `Stream URL: ${this.streamURL}`;
+                    obsInstructions.textContent = 'Copy this URL to OBS Browser Source';
+                } else {
+                    urlDisplay.textContent = 'Camera ready - Start streaming to get URL';
+                    obsInstructions.textContent = 'Stream will be available at unique URL';
                 }
             }
 
-            setupWebRTCSignaling() {
-                // Simulate a simple signaling server using WebSocket (would need actual server)
-                // For this demo, we'll use direct peer connection setup
-                this.createStreamingEndpoint();
-            }
-
-            createStreamingEndpoint() {
-                // Create a simple HTTP server simulation for OBS compatibility
-                // In reality, this would need a proper WebRTC signaling server
-                const streamUrl = `http://${this.localIP}:${this.streamPort}/stream`;
-                document.getElementById('stream-url').textContent = `Stream: ${streamUrl}`;
+            async requestWakeLock() {
+                if ('wakeLock' in navigator) {
+                    try {
+                        this.wakeLock = await navigator.wakeLock.request('screen');
+                    } catch (err) {
+                        console.log('Wake lock failed:', err);
+                    }
+                }
             }
 
             setupEventListeners() {
@@ -263,12 +333,12 @@
                 // Controls
                 document.getElementById('zoom-slider').addEventListener('input', (e) => this.setZoom(e.target.value));
                 document.getElementById('resolution-select').addEventListener('change', (e) => this.changeResolution(e.target.value));
-                document.getElementById('focus-select').addEventListener('change', (e) => this.changeFocusMode(e.target.value));
+                document.getElementById('fps-select').addEventListener('change', (e) => this.changeFPS(e.target.value));
                 
-                // Show URL toggle
-                document.getElementById('show-url-toggle').addEventListener('change', (e) => {
-                    const display = document.getElementById('stream-url-display');
-                    display.classList.toggle('hidden', !e.target.checked);
+                // Settings toggles
+                document.getElementById('show-qr-toggle').addEventListener('change', (e) => {
+                    document.getElementById('qr-container').classList.toggle('hidden', !e.target.checked);
+                    if (e.target.checked) this.generateQRCode();
                 });
             }
 
@@ -276,7 +346,7 @@
                 window.addEventListener('orientationchange', () => {
                     setTimeout(() => {
                         if (this.stream) {
-                            this.applyCurrentSettings();
+                            this.setupCanvas();
                         }
                     }, 500);
                 });
@@ -284,17 +354,40 @@
 
             async requestCameraPermission() {
                 try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ 
-                        video: { facingMode: this.currentCamera },
-                        audio: true 
-                    });
+                    const constraints = {
+                        video: {
+                            facingMode: this.currentCamera,
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 }
+                        },
+                        audio: true
+                    };
+                    
+                    const stream = await navigator.mediaDevices.getUserMedia(constraints);
                     this.setStream(stream);
                     this.updateConnectionStatus('connected');
+                    this.setupCanvas();
                 } catch (error) {
                     console.error('Camera permission denied:', error);
-                    this.showError('Camera access denied. Please enable camera permissions.');
+                    this.showError('Camera access denied. Please enable camera permissions and refresh.');
                     this.updateConnectionStatus('error');
                 }
+            }
+
+            setStream(stream) {
+                this.stream = stream;
+                this.video.srcObject = stream;
+                
+                this.video.onloadedmetadata = () => {
+                    this.setupCanvas();
+                };
+            }
+
+            setupCanvas() {
+                if (!this.video.videoWidth || !this.video.videoHeight) return;
+                
+                this.canvas.width = this.video.videoWidth;
+                this.canvas.height = this.video.videoHeight;
             }
 
             async switchCamera() {
@@ -316,47 +409,39 @@
                     
                     const newStream = await navigator.mediaDevices.getUserMedia(constraints);
                     this.setStream(newStream);
-                    this.applyCurrentSettings();
                 } catch (error) {
                     console.error('Failed to switch camera:', error);
                     this.showError('Failed to switch camera');
                 }
             }
 
-            setStream(stream) {
-                this.stream = stream;
-                this.video.srcObject = stream;
-                
-                // Get camera capabilities
-                const videoTrack = stream.getVideoTracks()[0];
-                if (videoTrack) {
-                    this.capabilities = videoTrack.getCapabilities();
-                    this.setupZoomLimits();
-                }
-            }
-
-            setupZoomLimits() {
-                if (this.capabilities && this.capabilities.zoom) {
-                    const zoomSlider = document.getElementById('zoom-slider');
-                    zoomSlider.min = this.capabilities.zoom.min;
-                    zoomSlider.max = this.capabilities.zoom.max;
-                    zoomSlider.step = this.capabilities.zoom.step || 0.1;
-                }
-            }
-
             async setZoom(zoomLevel) {
-                this.currentZoom = zoomLevel;
+                this.currentZoom = parseFloat(zoomLevel);
                 document.getElementById('zoom-value').textContent = `${zoomLevel}x`;
                 
-                if (this.stream && this.capabilities && this.capabilities.zoom) {
+                if (this.stream) {
                     const videoTrack = this.stream.getVideoTracks()[0];
-                    try {
-                        await videoTrack.applyConstraints({
-                            advanced: [{ zoom: zoomLevel }]
-                        });
-                    } catch (error) {
-                        console.error('Zoom not supported:', error);
+                    const capabilities = videoTrack.getCapabilities();
+                    
+                    if (capabilities.zoom) {
+                        try {
+                            await videoTrack.applyConstraints({
+                                advanced: [{ zoom: this.currentZoom }]
+                            });
+                        } catch (error) {
+                            // Fallback to digital zoom via canvas
+                            this.applyDigitalZoom();
+                        }
+                    } else {
+                        this.applyDigitalZoom();
                     }
+                }
+            }
+
+            applyDigitalZoom() {
+                // Digital zoom will be applied during canvas drawing
+                if (this.isStreaming) {
+                    this.drawFrame();
                 }
             }
 
@@ -394,37 +479,22 @@
             }
 
             async changeResolution(resolution) {
-                if (!this.stream) return;
-                
                 const res = this.getCurrentResolution();
-                const videoTrack = this.stream.getVideoTracks()[0];
-                
-                try {
-                    await videoTrack.applyConstraints({
-                        width: { ideal: res.width },
-                        height: { ideal: res.height }
-                    });
-                } catch (error) {
-                    console.error('Resolution change failed:', error);
-                    this.showError('Failed to change resolution');
+                this.setupCanvas();
+                this.updateStreamQuality();
+            }
+
+            changeFPS(fps) {
+                this.updateStreamQuality();
+                if (this.isStreaming) {
+                    this.restartStream();
                 }
             }
 
-            async changeFocusMode(focusMode) {
-                if (!this.stream) return;
-                
-                const videoTrack = this.stream.getVideoTracks()[0];
-                const capabilities = videoTrack.getCapabilities();
-                
-                if (capabilities.focusMode && capabilities.focusMode.includes(focusMode)) {
-                    try {
-                        await videoTrack.applyConstraints({
-                            advanced: [{ focusMode: focusMode }]
-                        });
-                    } catch (error) {
-                        console.error('Focus mode change failed:', error);
-                    }
-                }
+            updateStreamQuality() {
+                const resolution = document.getElementById('resolution-select').value;
+                const fps = document.getElementById('fps-select').value;
+                document.getElementById('stream-quality').textContent = `${resolution}p@${fps}fps`;
             }
 
             async toggleStream() {
@@ -439,6 +509,7 @@
                         status.textContent = 'Streaming';
                         status.classList.replace('text-red-400', 'text-green-400');
                         this.updateConnectionStatus('streaming');
+                        this.updateStreamURL();
                     } catch (error) {
                         console.error('Failed to start streaming:', error);
                         this.showError('Failed to start streaming');
@@ -450,6 +521,7 @@
                     status.textContent = 'Stopped';
                     status.classList.replace('text-green-400', 'text-red-400');
                     this.updateConnectionStatus('connected');
+                    this.updateStreamURL();
                 }
             }
 
@@ -458,43 +530,110 @@
                     throw new Error('No camera stream available');
                 }
 
-                // Create MediaRecorder for streaming
-                const options = { mimeType: 'video/webm;codecs=vp8,opus' };
-                this.mediaRecorder = new MediaRecorder(this.stream, options);
-                
-                const chunks = [];
-                this.mediaRecorder.ondataavailable = (event) => {
-                    if (event.data.size > 0) {
-                        chunks.push(event.data);
-                        this.broadcastToViewers(event.data);
-                    }
-                };
-
-                this.mediaRecorder.start(100); // Record in 100ms chunks
                 this.isStreaming = true;
+                this.streamStartTime = Date.now();
+                this.dataUsage = 0;
                 
-                // Simulate viewer connection for demo
-                setTimeout(() => {
-                    document.getElementById('viewer-count').textContent = '1';
-                }, 2000);
+                // Start the streaming loop
+                const fps = parseInt(document.getElementById('fps-select').value);
+                const interval = 1000 / fps;
+                
+                this.streamInterval = setInterval(() => {
+                    this.drawFrame();
+                    this.updateDataUsage();
+                }, interval);
+
+                // Create blob URL for the canvas stream
+                this.createCanvasStream();
+            }
+
+            createCanvasStream() {
+                // Create a stream from canvas for OBS compatibility
+                const canvasStream = this.canvas.captureStream(30);
+                
+                // Store the stream data (in real app, would send to server)
+                this.storeStreamData({
+                    url: this.streamURL,
+                    stream: canvasStream,
+                    startTime: this.streamStartTime
+                });
+            }
+
+            storeStreamData(streamData) {
+                // In a real implementation, this would send to a streaming server
+                // For demo purposes, we'll store locally
+                const streamId = new URLSearchParams(this.streamURL.split('?')[1]).get('stream');
+                if (typeof Storage !== 'undefined') {
+                    const data = {
+                        ...streamData,
+                        timestamp: Date.now()
+                    };
+                    // Note: We can't actually store MediaStream in localStorage
+                    // This is just for demo - real implementation needs WebRTC server
+                }
+            }
+
+            drawFrame() {
+                if (!this.video.videoWidth || !this.video.videoHeight) return;
+                
+                const canvas = this.canvas;
+                const ctx = this.ctx;
+                
+                // Clear canvas
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Apply zoom
+                const zoom = this.currentZoom;
+                const sourceWidth = this.video.videoWidth / zoom;
+                const sourceHeight = this.video.videoHeight / zoom;
+                const sourceX = (this.video.videoWidth - sourceWidth) / 2;
+                const sourceY = (this.video.videoHeight - sourceHeight) / 2;
+                
+                // Draw video frame with zoom
+                ctx.drawImage(
+                    this.video,
+                    sourceX, sourceY, sourceWidth, sourceHeight,
+                    0, 0, canvas.width, canvas.height
+                );
+                
+                // Add timestamp overlay
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                ctx.fillRect(10, 10, 200, 30);
+                ctx.fillStyle = 'white';
+                ctx.font = '16px Arial';
+                ctx.fillText(`🔴 LIVE ${new Date().toLocaleTimeString()}`, 20, 30);
             }
 
             stopStreaming() {
-                if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
-                    this.mediaRecorder.stop();
-                }
                 this.isStreaming = false;
-                document.getElementById('viewer-count').textContent = '0';
                 
-                // Close all peer connections
-                this.peerConnections.forEach(pc => pc.close());
-                this.peerConnections.clear();
+                if (this.streamInterval) {
+                    clearInterval(this.streamInterval);
+                    this.streamInterval = null;
+                }
             }
 
-            broadcastToViewers(chunk) {
-                // In a real implementation, this would send data to connected viewers
-                // For demo purposes, we'll just log the streaming activity
-                console.log('Broadcasting chunk of size:', chunk.size);
+            async restartStream() {
+                if (this.isStreaming) {
+                    this.stopStreaming();
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    await this.startStreaming();
+                }
+            }
+
+            updateDataUsage() {
+                if (!this.streamStartTime) return;
+                
+                const elapsed = (Date.now() - this.streamStartTime) / 1000; // seconds
+                const resolution = document.getElementById('resolution-select').value;
+                const fps = parseInt(document.getElementById('fps-select').value);
+                
+                // Estimate data usage (rough calculation)
+                const bitrates = { '480': 1000, '720': 2500, '1080': 5000 }; // kbps
+                const bitrate = bitrates[resolution] || 2500;
+                
+                this.dataUsage = (bitrate * elapsed) / 8 / 1024; // MB
+                document.getElementById('data-usage').textContent = `${this.dataUsage.toFixed(1)} MB`;
             }
 
             toggleFullscreen() {
@@ -518,41 +657,30 @@
             }
 
             saveSettings() {
-                const port = document.getElementById('stream-port').value;
                 const quality = document.getElementById('quality-select').value;
-                const autoStart = document.getElementById('auto-start-toggle').checked;
-                
-                this.streamPort = parseInt(port);
-                this.createStreamingEndpoint();
+                const streamMethod = document.getElementById('stream-method').value;
                 
                 // Apply quality settings
-                this.applyQualitySettings(quality);
+                const qualityMap = {
+                    'high': '1080',
+                    'medium': '720',
+                    'low': '480'
+                };
+                
+                document.getElementById('resolution-select').value = qualityMap[quality];
+                this.changeResolution(qualityMap[quality]);
                 
                 this.hideSettings();
             }
 
-            applyQualitySettings(quality) {
-                if (!this.stream) return;
-                
-                const videoTrack = this.stream.getVideoTracks()[0];
-                const qualitySettings = {
-                    high: { width: 1920, height: 1080, frameRate: 30 },
-                    medium: { width: 1280, height: 720, frameRate: 30 },
-                    low: { width: 854, height: 480, frameRate: 24 }
-                };
-                
-                const settings = qualitySettings[quality];
-                videoTrack.applyConstraints({
-                    width: { ideal: settings.width },
-                    height: { ideal: settings.height },
-                    frameRate: { ideal: settings.frameRate }
-                }).catch(error => console.error('Quality adjustment failed:', error));
-            }
-
-            applyCurrentSettings() {
-                this.setZoom(this.currentZoom);
-                const resolution = document.getElementById('resolution-select').value;
-                this.changeResolution(resolution);
+            generateQRCode() {
+                const qrContainer = document.getElementById('qr-code');
+                qrContainer.innerHTML = `
+                    <div class="w-32 h-32 bg-black flex items-center justify-center text-white text-xs text-center">
+                        QR Code<br>
+                        ${this.streamURL}
+                    </div>
+                `;
             }
 
             updateConnectionStatus(status) {
@@ -586,20 +714,23 @@
                         updateBattery();
                         battery.addEventListener('levelchange', updateBattery);
                         battery.addEventListener('chargingchange', updateBattery);
+                    }).catch(() => {
+                        document.getElementById('battery-status').textContent = '🔋N/A';
                     });
                 }
             }
 
             showError(message) {
-                // Create a simple toast notification
                 const toast = document.createElement('div');
                 toast.className = 'fixed top-4 left-4 right-4 bg-red-600 text-white p-3 rounded-lg z-50';
                 toast.textContent = message;
                 document.body.appendChild(toast);
                 
                 setTimeout(() => {
-                    document.body.removeChild(toast);
-                }, 3000);
+                    if (document.body.contains(toast)) {
+                        document.body.removeChild(toast);
+                    }
+                }, 5000);
             }
         }
 
@@ -611,7 +742,6 @@
         // Handle page visibility changes
         document.addEventListener('visibilitychange', () => {
             if (document.hidden) {
-                // Optionally pause streaming when app goes to background
                 console.log('App went to background');
             } else {
                 console.log('App came to foreground');

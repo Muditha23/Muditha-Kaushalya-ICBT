@@ -190,11 +190,24 @@
             }
             
             async init() {
-                await this.getLocalIP();
                 this.setupEventListeners();
+                this.updateStreamUrl();
+                
+                // Check if we're in a secure context
+                if (!window.isSecureContext && location.protocol !== 'file:') {
+                    this.showMessage('Camera requires HTTPS or localhost. Please use https:// or file://', 'error');
+                    return;
+                }
+                
+                // Check if getUserMedia is supported
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    this.showMessage('Camera not supported by this browser', 'error');
+                    return;
+                }
+                
+                await this.getLocalIP();
                 await this.startCamera();
                 this.startStreaming();
-                this.updateStreamUrl();
             }
             
             async getLocalIP() {
@@ -227,7 +240,9 @@
                             if (!resolved) {
                                 pc.close();
                                 resolved = true;
-                                reject(new Error('Timeout getting local IP'));
+                                this.localIP = window.location.hostname || 'localhost';
+                                this.updateStreamUrl();
+                                resolve(this.localIP);
                             }
                         }, 3000);
                     });
@@ -235,6 +250,7 @@
                     console.warn('Could not get local IP:', error);
                     this.localIP = window.location.hostname || 'localhost';
                     this.updateStreamUrl();
+                    return this.localIP;
                 }
             }
             
@@ -276,24 +292,50 @@
             
             async startCamera() {
                 try {
+                    this.showMessage('Requesting camera access...', 'info');
+                    
                     const constraints = this.getCameraConstraints();
+                    console.log('Camera constraints:', constraints);
                     
                     if (this.stream) {
                         this.stream.getTracks().forEach(track => track.stop());
                     }
                     
                     this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+                    console.log('Camera stream obtained:', this.stream);
+                    
                     this.videoElement.srcObject = this.stream;
                     
-                    // Wait for video to load metadata
-                    await new Promise((resolve) => {
-                        this.videoElement.addEventListener('loadedmetadata', resolve, { once: true });
+                    // Wait for video to load and play
+                    await new Promise((resolve, reject) => {
+                        const timeout = setTimeout(() => {
+                            reject(new Error('Video load timeout'));
+                        }, 10000);
+                        
+                        this.videoElement.addEventListener('loadedmetadata', () => {
+                            clearTimeout(timeout);
+                            console.log('Video metadata loaded:', this.videoElement.videoWidth, 'x', this.videoElement.videoHeight);
+                            resolve();
+                        }, { once: true });
+                        
+                        this.videoElement.addEventListener('error', (e) => {
+                            clearTimeout(timeout);
+                            reject(new Error('Video load error: ' + e.message));
+                        }, { once: true });
                     });
                     
-                    // Apply initial camera settings after a short delay
+                    // Ensure video starts playing
+                    try {
+                        await this.videoElement.play();
+                    } catch (playError) {
+                        console.warn('Auto-play failed:', playError);
+                        // This is often okay on mobile
+                    }
+                    
+                    // Apply camera settings after video is ready
                     setTimeout(() => {
                         this.applyCameraSettings();
-                    }, 500);
+                    }, 1000);
                     
                     this.showMessage('Camera started successfully', 'success');
                     
@@ -302,16 +344,19 @@
                     let errorMessage = 'Failed to access camera';
                     
                     if (error.name === 'NotAllowedError') {
-                        errorMessage = 'Camera permission denied. Please allow camera access and refresh.';
+                        errorMessage = 'Camera permission denied. Please allow camera access and refresh the page.';
                     } else if (error.name === 'NotFoundError') {
                         errorMessage = 'No camera found on this device.';
                     } else if (error.name === 'NotSupportedError') {
                         errorMessage = 'Camera not supported by this browser.';
                     } else if (error.name === 'OverconstrainedError') {
-                        errorMessage = 'Camera constraints not supported. Trying fallback...';
-                        // Try with basic constraints
-                        this.startCameraFallback();
+                        errorMessage = 'Camera constraints not supported. Trying basic settings...';
+                        await this.startCameraFallback();
                         return;
+                    } else if (error.name === 'NotReadableError') {
+                        errorMessage = 'Camera is being used by another application.';
+                    } else if (error.message.includes('timeout')) {
+                        errorMessage = 'Camera initialization timed out. Please try again.';
                     }
                     
                     this.showMessage(errorMessage, 'error');
@@ -320,24 +365,71 @@
             
             async startCameraFallback() {
                 try {
-                    const basicConstraints = {
-                        video: {
-                            facingMode: this.currentFacingMode
+                    this.showMessage('Trying basic camera settings...', 'info');
+                    
+                    // Try progressively simpler constraints
+                    const fallbackConstraints = [
+                        // First fallback: just facing mode
+                        {
+                            video: {
+                                facingMode: { ideal: this.currentFacingMode }
+                            },
+                            audio: false
                         },
-                        audio: false
-                    };
+                        // Second fallback: any camera
+                        {
+                            video: true,
+                            audio: false
+                        },
+                        // Last resort: minimal constraints
+                        {
+                            video: {
+                                width: { max: 1280 },
+                                height: { max: 720 }
+                            },
+                            audio: false
+                        }
+                    ];
                     
                     if (this.stream) {
                         this.stream.getTracks().forEach(track => track.stop());
                     }
                     
-                    this.stream = await navigator.mediaDevices.getUserMedia(basicConstraints);
-                    this.videoElement.srcObject = this.stream;
+                    let lastError;
+                    for (const constraints of fallbackConstraints) {
+                        try {
+                            console.log('Trying fallback constraints:', constraints);
+                            this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+                            this.videoElement.srcObject = this.stream;
+                            
+                            // Wait for video to load
+                            await new Promise((resolve, reject) => {
+                                const timeout = setTimeout(() => {
+                                    reject(new Error('Fallback video load timeout'));
+                                }, 5000);
+                                
+                                this.videoElement.addEventListener('loadedmetadata', () => {
+                                    clearTimeout(timeout);
+                                    resolve();
+                                }, { once: true });
+                            });
+                            
+                            this.showMessage('Camera started with basic settings', 'warning');
+                            return; // Success, exit the loop
+                            
+                        } catch (error) {
+                            console.warn('Fallback attempt failed:', error);
+                            lastError = error;
+                            continue; // Try next fallback
+                        }
+                    }
                     
-                    this.showMessage('Camera started with basic settings', 'warning');
+                    // If we get here, all fallbacks failed
+                    throw lastError || new Error('All camera fallback attempts failed');
                     
                 } catch (error) {
-                    this.showMessage('Failed to start camera with fallback settings', 'error');
+                    console.error('Fallback camera start failed:', error);
+                    this.showMessage('Failed to start camera with any settings. Please check camera permissions.', 'error');
                 }
             }
             
@@ -346,10 +438,10 @@
                 
                 return {
                     video: {
-                        facingMode: this.currentFacingMode,
-                        width: { ideal: resolution.width },
-                        height: { ideal: resolution.height },
-                        aspectRatio: { ideal: resolution.width / resolution.height }
+                        facingMode: { ideal: this.currentFacingMode },
+                        width: { ideal: resolution.width, max: resolution.width },
+                        height: { ideal: resolution.height, max: resolution.height },
+                        frameRate: { ideal: 30, max: 30 }
                     },
                     audio: false
                 };
@@ -648,7 +740,19 @@
         
         // Initialize the app when the page loads
         document.addEventListener('DOMContentLoaded', () => {
-            new MobileCameraStreamer();
+            // Add click handler to start camera on user interaction (mobile requirement)
+            const startButton = document.createElement('button');
+            startButton.textContent = 'Start Camera';
+            startButton.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg text-lg font-semibold z-50';
+            startButton.id = 'startButton';
+            
+            document.body.appendChild(startButton);
+            
+            startButton.addEventListener('click', async () => {
+                startButton.style.display = 'none';
+                const streamer = new MobileCameraStreamer();
+                window.cameraStreamer = streamer; // Make it globally accessible for debugging
+            });
         });
         
         // Handle fullscreen changes

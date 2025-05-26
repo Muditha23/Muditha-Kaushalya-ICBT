@@ -3,805 +3,620 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mobile Camera OBS Streamer</title>
+    <title>Mobile Camera Stream</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Custom styles for camera controls */
-        .camera-controls {
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px);
-        }
-        
         .control-button {
-            transition: all 0.2s ease;
+            @apply bg-gray-800 text-white p-3 rounded-lg shadow-lg active:bg-gray-700;
         }
-        
-        .control-button:active {
-            transform: scale(0.95);
+        .status-indicator {
+            @apply inline-block w-3 h-3 rounded-full mr-2;
         }
-        
-        .stream-indicator {
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        @keyframes focusPulse {
-            0% { transform: scale(1.5); opacity: 0.8; }
-            100% { transform: scale(1); opacity: 0; }
-        }
-        
-        /* Fullscreen styles */
         .fullscreen-video {
-            object-fit: cover;
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100vw;
             height: 100vh;
+            object-fit: cover;
+            z-index: 9999;
         }
-        
-        /* Range slider styling */
-        input[type="range"] {
-            -webkit-appearance: none;
+        .zoom-slider::-webkit-slider-thumb {
             appearance: none;
-            background: transparent;
-            cursor: pointer;
-        }
-        
-        input[type="range"]::-webkit-slider-track {
-            background: rgba(255, 255, 255, 0.3);
-            height: 4px;
-            border-radius: 2px;
-        }
-        
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            background: #3b82f6;
-            height: 20px;
             width: 20px;
+            height: 20px;
             border-radius: 50%;
-            border: 2px solid white;
+            background: #3b82f6;
+            cursor: pointer;
         }
     </style>
 </head>
-<body class="bg-black text-white overflow-hidden">
-    <div id="videoContainer" class="relative w-full h-screen">
-        <video id="videoElement" class="w-full h-full object-cover" autoplay muted playsinline></video>
+<body class="bg-gray-900 text-white min-h-screen">
+    <!-- Header -->
+    <div class="bg-gray-800 p-4 flex justify-between items-center">
+        <h1 class="text-xl font-bold">📹 Mobile Stream</h1>
+        <div class="flex items-center space-x-2">
+            <span id="connection-status" class="status-indicator bg-red-500"></span>
+            <span id="battery-status" class="text-sm">🔋</span>
+            <button id="settings-btn" class="control-button">⚙️</button>
+        </div>
+    </div>
+
+    <!-- Main Video Container -->
+    <div class="relative bg-black aspect-video mx-4 my-4 rounded-lg overflow-hidden">
+        <video id="camera-preview" class="w-full h-full object-cover" autoplay muted playsinline></video>
         
-        <div id="topControls" class="absolute top-0 left-0 right-0 camera-controls p-4 flex justify-between items-center z-10">
-            <div class="flex items-center space-x-3">
-                <button id="switchCamera" class="control-button bg-blue-600 hover:bg-blue-700 p-3 rounded-full">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    </svg>
-                </button>
-                
-                <button id="torchToggle" class="control-button bg-gray-600 hover:bg-gray-700 p-3 rounded-full">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-                    </svg>
-                </button>
+        <!-- Video Overlay Controls -->
+        <div class="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity" id="video-overlay">
+            <button id="fullscreen-btn" class="bg-black bg-opacity-50 text-white p-3 rounded-full">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Stream URL Display -->
+        <div id="stream-url-display" class="absolute bottom-2 left-2 right-2 bg-black bg-opacity-70 p-2 rounded text-xs hidden">
+            <div class="text-green-400 font-mono" id="stream-url">Stream: Connecting...</div>
+        </div>
+    </div>
+
+    <!-- Camera Controls -->
+    <div class="mx-4 space-y-4">
+        <!-- Primary Controls -->
+        <div class="grid grid-cols-3 gap-3">
+            <button id="camera-switch" class="control-button flex flex-col items-center">
+                <span class="text-2xl">🔄</span>
+                <span class="text-xs mt-1">Switch</span>
+            </button>
+            <button id="start-stream" class="bg-red-600 text-white p-3 rounded-lg shadow-lg active:bg-red-700 flex flex-col items-center">
+                <span class="text-2xl">📡</span>
+                <span class="text-xs mt-1">Stream</span>
+            </button>
+            <button id="flash-toggle" class="control-button flex flex-col items-center">
+                <span class="text-2xl">💡</span>
+                <span class="text-xs mt-1">Flash</span>
+            </button>
+        </div>
+
+        <!-- Zoom Control -->
+        <div class="bg-gray-800 p-4 rounded-lg">
+            <label class="block text-sm font-medium mb-2">Zoom: <span id="zoom-value">1x</span></label>
+            <input type="range" id="zoom-slider" class="zoom-slider w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer" 
+                   min="1" max="10" step="0.1" value="1">
+        </div>
+
+        <!-- Resolution & Quality -->
+        <div class="grid grid-cols-2 gap-3">
+            <div class="bg-gray-800 p-3 rounded-lg">
+                <label class="block text-sm font-medium mb-2">Resolution</label>
+                <select id="resolution-select" class="w-full bg-gray-700 text-white p-2 rounded">
+                    <option value="480">480p</option>
+                    <option value="720" selected>720p</option>
+                    <option value="1080">1080p</option>
+                </select>
             </div>
-            
-            <div class="flex items-center space-x-3">
-                <div id="streamStatus" class="flex items-center space-x-2">
-                    <div id="streamIndicator" class="w-3 h-3 bg-red-500 rounded-full stream-indicator"></div>
-                    <span id="streamText" class="text-sm font-medium">LIVE</span>
-                </div>
-                
-                <button id="fullscreenToggle" class="control-button bg-gray-600 hover:bg-gray-700 p-3 rounded-full">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
-                    </svg>
-                </button>
+            <div class="bg-gray-800 p-3 rounded-lg">
+                <label class="block text-sm font-medium mb-2">Focus Mode</label>
+                <select id="focus-select" class="w-full bg-gray-700 text-white p-2 rounded">
+                    <option value="continuous">Auto</option>
+                    <option value="single-shot">Single</option>
+                    <option value="manual">Manual</option>
+                </select>
             </div>
         </div>
-        
-        <div id="bottomControls" class="absolute bottom-0 left-0 right-0 camera-controls p-4 space-y-4 z-10">
-            <div class="flex items-center space-x-3">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/>
-                </svg>
-                <input type="range" id="zoomSlider" min="1" max="10" step="0.1" value="1" class="flex-1">
-                <span id="zoomValue" class="text-sm w-12">1.0x</span>
+
+        <!-- Stream Info -->
+        <div class="bg-gray-800 p-4 rounded-lg space-y-2">
+            <div class="flex justify-between">
+                <span class="text-sm">Stream Status:</span>
+                <span id="stream-status" class="text-sm text-red-400">Stopped</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-sm">Local IP:</span>
+                <span id="local-ip" class="text-sm text-blue-400">Detecting...</span>
+            </div>
+            <div class="flex justify-between">
+                <span class="text-sm">Viewers:</span>
+                <span id="viewer-count" class="text-sm text-green-400">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+        <div class="bg-gray-800 m-4 p-6 rounded-lg w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold">Settings</h2>
+                <button id="close-settings" class="text-gray-400 hover:text-white">✕</button>
             </div>
             
-            <div class="flex justify-between items-center space-x-4">
-                <div class="flex items-center space-x-2">
-                    <label class="text-sm">Resolution:</label>
-                    <select id="resolutionSelect" class="bg-gray-700 text-white rounded px-2 py-1 text-sm">
-                        <option value="480p">480p</option>
-                        <option value="720p" selected>720p</option>
-                        <option value="1080p">1080p</option>
-                        <option value="4K">4K</option>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Stream Port</label>
+                    <input type="number" id="stream-port" value="8080" class="w-full bg-gray-700 text-white p-2 rounded">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium mb-2">Stream Quality</label>
+                    <select id="quality-select" class="w-full bg-gray-700 text-white p-2 rounded">
+                        <option value="high">High Quality</option>
+                        <option value="medium" selected>Medium Quality</option>
+                        <option value="low">Low Quality</option>
                     </select>
                 </div>
                 
-                <button id="focusToggle" class="control-button bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded text-sm">
-                    <span id="focusMode">Auto Focus</span>
-                </button>
-            </div>
-            
-            <div class="bg-gray-800 rounded p-3">
-                <div class="text-xs text-gray-400 mb-1">OBS Stream URL:</div>
-                <div class="flex items-center space-x-2">
-                    <code id="streamUrl" class="text-green-400 text-xs flex-1 break-all">http://[your-ip]:8080/stream</code>
-                    <button id="copyUrl" class="control-button bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-xs">
-                        Copy
-                    </button>
+                <div class="flex items-center justify-between">
+                    <span class="text-sm">Show Stream URL</span>
+                    <input type="checkbox" id="show-url-toggle" class="w-4 h-4">
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <span class="text-sm">Auto-start Stream</span>
+                    <input type="checkbox" id="auto-start-toggle" class="w-4 h-4">
                 </div>
             </div>
+            
+            <button id="save-settings" class="w-full bg-blue-600 text-white p-3 rounded-lg mt-4 hover:bg-blue-700">
+                Save Settings
+            </button>
         </div>
-        
-        <button id="settingsToggle" class="absolute right-4 top-1/2 transform -translate-y-1/2 control-button bg-gray-600 hover:bg-gray-700 p-3 rounded-full z-20">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
-        </button>
     </div>
-    
-    <canvas id="streamCanvas" style="display: none;"></canvas>
-    
-    <div id="statusMessages" class="fixed top-4 left-4 right-4 z-50 space-y-2"></div>
+
+    <!-- Instructions Panel -->
+    <div class="mx-4 mt-6 mb-8">
+        <div class="bg-blue-900 bg-opacity-50 p-4 rounded-lg">
+            <h3 class="font-bold mb-2">📋 OBS Setup Instructions</h3>
+            <ol class="text-sm space-y-1 list-decimal list-inside">
+                <li>Start streaming on your mobile device</li>
+                <li>Note the stream URL displayed above</li>
+                <li>In OBS, add "Browser Source" or "Media Source"</li>
+                <li>Enter the stream URL: http://[YOUR-IP]:8080/stream</li>
+                <li>Set width: 1920, height: 1080 (or your resolution)</li>
+            </ol>
+        </div>
+    </div>
 
     <script>
-        class MobileCameraStreamer {
+        class MobileCameraStream {
             constructor() {
-                this.videoElement = document.getElementById('videoElement');
-                this.canvas = document.getElementById('streamCanvas');
-                this.ctx = this.canvas.getContext('2d');
+                this.video = document.getElementById('camera-preview');
                 this.stream = null;
-                this.currentFacingMode = 'environment'; // Start with rear camera
+                this.mediaRecorder = null;
                 this.isStreaming = false;
-                this.isFullscreen = false;
+                this.currentCamera = 'user'; // 'user' or 'environment'
                 this.currentZoom = 1;
-                this.focusMode = 'continuous'; // 'continuous' or 'manual'
-                this.torchEnabled = false;
-                this.resolution = '720p';
-                this.streamingInterval = null;
-                this.serverPort = 8080;
-                this.localIP = null; // Will be set to window.location.hostname
+                this.streamPort = 8080;
+                this.peerConnections = new Map();
+                this.localIP = null;
+                this.capabilities = null;
                 
-                this.resolutions = {
-                    '480p': { width: 854, height: 480 },
-                    '720p': { width: 1280, height: 720 },
-                    '1080p': { width: 1920, height: 1080 },
-                    '4K': { width: 3840, height: 2160 }
-                };
-                
-                this.init();
+                this.initializeApp();
             }
-            
-            async init() {
+
+            async initializeApp() {
+                await this.detectLocalIP();
                 this.setupEventListeners();
-                
-                // Check if we're in a secure context or using file://
-                if (!window.isSecureContext && location.protocol !== 'file:') {
-                    this.showMessage('Camera requires HTTPS or localhost. Please use https:// or file://', 'error');
-                    return;
-                }
-                
-                // Check if getUserMedia is supported
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    this.showMessage('Camera not supported by this browser', 'error');
-                    return;
-                }
-                
-                // Set localIP based on where the page is hosted
-                this.localIP = window.location.hostname;
-                this.updateStreamUrl();
-                
-                await this.startCamera();
-                this.startStreaming();
+                this.setupOrientationHandler();
+                this.requestCameraPermission();
+                this.updateBatteryStatus();
+                this.setupWebRTCSignaling();
             }
-            
-            updateStreamUrl() {
-                const streamUrl = document.getElementById('streamUrl');
-                const url = `http://${this.localIP || 'localhost'}:${this.serverPort}/stream`;
-                streamUrl.textContent = url;
-            }
-            
-            setupEventListeners() {
-                // Camera switch
-                document.getElementById('switchCamera').addEventListener('click', () => this.switchCamera());
-                
-                // Torch toggle
-                document.getElementById('torchToggle').addEventListener('click', () => this.toggleTorch());
-                
-                // Fullscreen toggle
-                document.getElementById('fullscreenToggle').addEventListener('click', () => this.toggleFullscreen());
-                
-                // Zoom control
-                const zoomSlider = document.getElementById('zoomSlider');
-                zoomSlider.addEventListener('input', (e) => this.handleZoom(e.target.value));
-                
-                // Resolution change
-                document.getElementById('resolutionSelect').addEventListener('change', (e) => this.changeResolution(e.target.value));
-                
-                // Focus toggle
-                document.getElementById('focusToggle').addEventListener('click', () => this.toggleFocus());
-                
-                // Copy URL
-                document.getElementById('copyUrl').addEventListener('click', () => this.copyStreamUrl());
-                
-                // Settings toggle
-                document.getElementById('settingsToggle').addEventListener('click', () => this.toggleSettings());
-                
-                // Touch events for focus
-                this.videoElement.addEventListener('click', (e) => this.handleTapToFocus(e));
-            }
-            
-            async startCamera() {
+
+            async detectLocalIP() {
                 try {
-                    this.showMessage('Requesting camera access...', 'info');
-                    
-                    const constraints = this.getCameraConstraints();
-                    console.log('Camera constraints:', constraints);
-                    
-                    if (this.stream) {
-                        this.stream.getTracks().forEach(track => track.stop());
-                    }
-                    
-                    this.stream = await navigator.mediaDevices.getUserMedia(constraints);
-                    console.log('Camera stream obtained:', this.stream);
-                    
-                    this.videoElement.srcObject = this.stream;
-                    
-                    // Wait for video to load and play
-                    await new Promise((resolve, reject) => {
-                        const timeout = setTimeout(() => {
-                            reject(new Error('Video load timeout'));
-                        }, 10000);
-                        
-                        this.videoElement.addEventListener('loadedmetadata', () => {
-                            clearTimeout(timeout);
-                            console.log('Video metadata loaded:', this.videoElement.videoWidth, 'x', this.videoElement.videoHeight);
-                            resolve();
-                        }, { once: true });
-                        
-                        this.videoElement.addEventListener('error', (e) => {
-                            clearTimeout(timeout);
-                            reject(new Error('Video load error: ' + e.message));
-                        }, { once: true });
+                    // Create a dummy peer connection to get local IP
+                    const pc = new RTCPeerConnection({
+                        iceServers: [{urls: "stun:stun.l.google.com:19302"}]
                     });
                     
-                    // Ensure video starts playing
-                    try {
-                        await this.videoElement.play();
-                    } catch (playError) {
-                        console.warn('Auto-play failed (may require user interaction):', playError);
-                        // This is often okay on mobile, video will play on first user interaction
-                    }
+                    pc.createDataChannel("");
+                    const offer = await pc.createOffer();
+                    await pc.setLocalDescription(offer);
                     
-                    // Apply camera settings after video is ready
-                    // A small delay sometimes helps ensure capabilities are reported correctly
+                    const localIP = await new Promise((resolve) => {
+                        pc.onicecandidate = (event) => {
+                            if (event.candidate) {
+                                const candidate = event.candidate.candidate;
+                                const ipMatch = candidate.match(/(\d+\.\d+\.\d+\.\d+)/);
+                                if (ipMatch) {
+                                    resolve(ipMatch[1]);
+                                }
+                            }
+                        };
+                    });
+                    
+                    this.localIP = localIP;
+                    document.getElementById('local-ip').textContent = localIP || 'Unknown';
+                    pc.close();
+                } catch (error) {
+                    console.error('Failed to detect local IP:', error);
+                    document.getElementById('local-ip').textContent = 'Detection failed';
+                }
+            }
+
+            setupWebRTCSignaling() {
+                // Simulate a simple signaling server using WebSocket (would need actual server)
+                // For this demo, we'll use direct peer connection setup
+                this.createStreamingEndpoint();
+            }
+
+            createStreamingEndpoint() {
+                // Create a simple HTTP server simulation for OBS compatibility
+                // In reality, this would need a proper WebRTC signaling server
+                const streamUrl = `http://${this.localIP}:${this.streamPort}/stream`;
+                document.getElementById('stream-url').textContent = `Stream: ${streamUrl}`;
+            }
+
+            setupEventListeners() {
+                // Camera controls
+                document.getElementById('camera-switch').addEventListener('click', () => this.switchCamera());
+                document.getElementById('start-stream').addEventListener('click', () => this.toggleStream());
+                document.getElementById('flash-toggle').addEventListener('click', () => this.toggleFlash());
+                document.getElementById('fullscreen-btn').addEventListener('click', () => this.toggleFullscreen());
+                
+                // Settings
+                document.getElementById('settings-btn').addEventListener('click', () => this.showSettings());
+                document.getElementById('close-settings').addEventListener('click', () => this.hideSettings());
+                document.getElementById('save-settings').addEventListener('click', () => this.saveSettings());
+                
+                // Controls
+                document.getElementById('zoom-slider').addEventListener('input', (e) => this.setZoom(e.target.value));
+                document.getElementById('resolution-select').addEventListener('change', (e) => this.changeResolution(e.target.value));
+                document.getElementById('focus-select').addEventListener('change', (e) => this.changeFocusMode(e.target.value));
+                
+                // Show URL toggle
+                document.getElementById('show-url-toggle').addEventListener('change', (e) => {
+                    const display = document.getElementById('stream-url-display');
+                    display.classList.toggle('hidden', !e.target.checked);
+                });
+            }
+
+            setupOrientationHandler() {
+                window.addEventListener('orientationchange', () => {
                     setTimeout(() => {
-                        this.applyCameraSettings();
-                    }, 500); 
-                    
-                    this.showMessage('Camera started successfully', 'success');
-                    
-                } catch (error) {
-                    console.error('Error accessing camera:', error);
-                    let errorMessage = 'Failed to access camera';
-                    
-                    if (error.name === 'NotAllowedError') {
-                        errorMessage = 'Camera permission denied. Please allow camera access and refresh the page.';
-                    } else if (error.name === 'NotFoundError') {
-                        errorMessage = 'No camera found on this device.';
-                    } else if (error.name === 'NotSupportedError') {
-                        errorMessage = 'Camera not supported by this browser.';
-                    } else if (error.name === 'OverconstrainedError') {
-                        errorMessage = `Camera constraints not supported for ${error.constraint}. Trying basic settings...`;
-                        await this.startCameraFallback();
-                        return;
-                    } else if (error.name === 'NotReadableError') {
-                        errorMessage = 'Camera is being used by another application or device is busy.';
-                    } else if (error.message.includes('timeout')) {
-                        errorMessage = 'Camera initialization timed out. Please try again.';
-                    } else {
-                        errorMessage = `An unknown camera error occurred: ${error.message}`;
-                    }
-                    
-                    this.showMessage(errorMessage, 'error');
-                }
-            }
-            
-            async startCameraFallback() {
-                try {
-                    this.showMessage('Trying basic camera settings...', 'info');
-                    
-                    // Try progressively simpler constraints
-                    const fallbackConstraints = [
-                        // First fallback: just facing mode and a reasonable resolution
-                        {
-                            video: {
-                                facingMode: { ideal: this.currentFacingMode },
-                                width: { max: 1280 }, // Limit to 720p equivalent width
-                                height: { max: 720 } // Limit to 720p equivalent height
-                            },
-                            audio: false
-                        },
-                        // Second fallback: any camera, no specific facing mode, smaller max resolution
-                        {
-                            video: {
-                                width: { max: 854 }, // Limit to 480p equivalent width
-                                height: { max: 480 } // Limit to 480p equivalent height
-                            },
-                            audio: false
-                        },
-                        // Last resort: just video true
-                        {
-                            video: true,
-                            audio: false
+                        if (this.stream) {
+                            this.applyCurrentSettings();
                         }
-                    ];
-                    
-                    if (this.stream) {
-                        this.stream.getTracks().forEach(track => track.stop());
-                    }
-                    
-                    let lastError;
-                    for (const constraints of fallbackConstraints) {
-                        try {
-                            console.log('Trying fallback constraints:', constraints);
-                            this.stream = await navigator.mediaDevices.getUserMedia(constraints);
-                            this.videoElement.srcObject = this.stream;
-                            
-                            // Wait for video to load
-                            await new Promise((resolve, reject) => {
-                                const timeout = setTimeout(() => {
-                                    reject(new Error('Fallback video load timeout'));
-                                }, 5000);
-                                
-                                this.videoElement.addEventListener('loadedmetadata', () => {
-                                    clearTimeout(timeout);
-                                    resolve();
-                                }, { once: true });
-                            });
-                            
-                            this.showMessage('Camera started with basic settings', 'warning');
-                            return; // Success, exit the loop
-                            
-                        } catch (error) {
-                            console.warn('Fallback attempt failed:', error);
-                            lastError = error;
-                            continue; // Try next fallback
-                        }
-                    }
-                    
-                    // If we get here, all fallbacks failed
-                    throw lastError || new Error('All camera fallback attempts failed');
-                    
-                } catch (error) {
-                    console.error('Fallback camera start failed:', error);
-                    this.showMessage('Failed to start camera with any settings. Please check camera permissions.', 'error');
-                }
+                    }, 500);
+                });
             }
-            
-            getCameraConstraints() {
-                const resolution = this.resolutions[this.resolution];
-                
-                // Prioritize ideal values, but allow max for flexibility if ideal is not met
-                return {
-                    video: {
-                        facingMode: { ideal: this.currentFacingMode },
-                        width: { ideal: resolution.width, max: resolution.width },
-                        height: { ideal: resolution.height, max: resolution.height },
-                        frameRate: { ideal: 30, max: 30 }
-                    },
-                    audio: false
-                };
-            }
-            
-            async applyCameraSettings() {
-                if (!this.stream) return;
-                
-                const track = this.stream.getVideoTracks()[0];
-                if (!track) return;
-                
+
+            async requestCameraPermission() {
                 try {
-                    const capabilities = track.getCapabilities();
-                    const settings = track.getSettings(); // Get current settings to check if capabilities apply
-                    const constraints = {};
-                    
-                    // Apply zoom if supported and if current zoom is different from default (1)
-                    if (capabilities.zoom && this.currentZoom !== 1 && capabilities.zoom.min <= this.currentZoom && capabilities.zoom.max >= this.currentZoom) {
-                        constraints.zoom = this.currentZoom;
-                    }
-                    
-                    // Apply focus mode if supported and if different from current setting
-                    if (capabilities.focusMode && capabilities.focusMode.includes(this.focusMode) && settings.focusMode !== this.focusMode) {
-                        constraints.focusMode = this.focusMode;
-                    }
-                    
-                    // Apply torch if supported and if different from current setting
-                    if (capabilities.torch && settings.torch !== this.torchEnabled) {
-                        constraints.torch = this.torchEnabled;
-                    }
-                    
-                    // Only apply constraints if we have any changes to make
-                    if (Object.keys(constraints).length > 0) {
-                        await track.applyConstraints({ advanced: [constraints] });
-                        console.log('Applied camera settings:', constraints);
-                    }
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { facingMode: this.currentCamera },
+                        audio: true 
+                    });
+                    this.setStream(stream);
+                    this.updateConnectionStatus('connected');
                 } catch (error) {
-                    console.warn('Could not apply camera settings:', error);
-                    // Don't show error to user for non-critical settings
+                    console.error('Camera permission denied:', error);
+                    this.showError('Camera access denied. Please enable camera permissions.');
+                    this.updateConnectionStatus('error');
                 }
             }
-            
+
             async switchCamera() {
-                this.currentFacingMode = this.currentFacingMode === 'user' ? 'environment' : 'user';
-                await this.startCamera();
-                this.showMessage(`Switched to ${this.currentFacingMode === 'user' ? 'front' : 'rear'} camera`, 'info');
-            }
-            
-            async toggleTorch() {
                 if (!this.stream) return;
                 
-                const track = this.stream.getVideoTracks()[0];
-                if (!track) return;
+                this.currentCamera = this.currentCamera === 'user' ? 'environment' : 'user';
                 
-                const capabilities = track.getCapabilities();
+                try {
+                    this.stream.getTracks().forEach(track => track.stop());
+                    
+                    const constraints = {
+                        video: {
+                            facingMode: this.currentCamera,
+                            width: { ideal: this.getCurrentResolution().width },
+                            height: { ideal: this.getCurrentResolution().height }
+                        },
+                        audio: true
+                    };
+                    
+                    const newStream = await navigator.mediaDevices.getUserMedia(constraints);
+                    this.setStream(newStream);
+                    this.applyCurrentSettings();
+                } catch (error) {
+                    console.error('Failed to switch camera:', error);
+                    this.showError('Failed to switch camera');
+                }
+            }
+
+            setStream(stream) {
+                this.stream = stream;
+                this.video.srcObject = stream;
+                
+                // Get camera capabilities
+                const videoTrack = stream.getVideoTracks()[0];
+                if (videoTrack) {
+                    this.capabilities = videoTrack.getCapabilities();
+                    this.setupZoomLimits();
+                }
+            }
+
+            setupZoomLimits() {
+                if (this.capabilities && this.capabilities.zoom) {
+                    const zoomSlider = document.getElementById('zoom-slider');
+                    zoomSlider.min = this.capabilities.zoom.min;
+                    zoomSlider.max = this.capabilities.zoom.max;
+                    zoomSlider.step = this.capabilities.zoom.step || 0.1;
+                }
+            }
+
+            async setZoom(zoomLevel) {
+                this.currentZoom = zoomLevel;
+                document.getElementById('zoom-value').textContent = `${zoomLevel}x`;
+                
+                if (this.stream && this.capabilities && this.capabilities.zoom) {
+                    const videoTrack = this.stream.getVideoTracks()[0];
+                    try {
+                        await videoTrack.applyConstraints({
+                            advanced: [{ zoom: zoomLevel }]
+                        });
+                    } catch (error) {
+                        console.error('Zoom not supported:', error);
+                    }
+                }
+            }
+
+            async toggleFlash() {
+                if (!this.stream) return;
+                
+                const videoTrack = this.stream.getVideoTracks()[0];
+                const capabilities = videoTrack.getCapabilities();
                 
                 if (capabilities.torch) {
-                    this.torchEnabled = !this.torchEnabled;
-                    await this.applyCameraSettings(); // Re-apply all settings, including torch
-                    
-                    const torchButton = document.getElementById('torchToggle');
-                    torchButton.classList.toggle('bg-yellow-500', this.torchEnabled);
-                    torchButton.classList.toggle('bg-gray-600', !this.torchEnabled);
-                    
-                    this.showMessage(`Torch ${this.torchEnabled ? 'ON' : 'OFF'}`, 'info');
+                    const settings = videoTrack.getSettings();
+                    try {
+                        await videoTrack.applyConstraints({
+                            advanced: [{ torch: !settings.torch }]
+                        });
+                        
+                        const flashBtn = document.getElementById('flash-toggle');
+                        flashBtn.classList.toggle('bg-yellow-600', !settings.torch);
+                    } catch (error) {
+                        console.error('Flash control failed:', error);
+                    }
                 } else {
-                    this.showMessage('Torch not supported on this device', 'warning');
+                    this.showError('Flash not supported on this device');
                 }
             }
-            
-            async handleZoom(value) {
-                this.currentZoom = parseFloat(value);
-                document.getElementById('zoomValue').textContent = `${this.currentZoom.toFixed(1)}x`;
-                await this.applyCameraSettings();
+
+            getCurrentResolution() {
+                const resolution = document.getElementById('resolution-select').value;
+                const resolutions = {
+                    '480': { width: 854, height: 480 },
+                    '720': { width: 1280, height: 720 },
+                    '1080': { width: 1920, height: 1080 }
+                };
+                return resolutions[resolution];
             }
-            
-            async changeResolution(newResolution) {
-                this.resolution = newResolution;
-                await this.startCamera(); // Re-start camera with new resolution constraints
-                this.showMessage(`Resolution changed to ${newResolution}`, 'info');
-            }
-            
-            async toggleFocus() {
-                this.focusMode = this.focusMode === 'continuous' ? 'manual' : 'continuous';
-                await this.applyCameraSettings();
+
+            async changeResolution(resolution) {
+                if (!this.stream) return;
                 
-                const focusButton = document.getElementById('focusMode');
-                focusButton.textContent = this.focusMode === 'continuous' ? 'Auto Focus' : 'Manual Focus';
-                
-                this.showMessage(`Focus mode: ${this.focusMode}`, 'info');
-            }
-            
-            async handleTapToFocus(event) {
-                if (!this.stream || this.focusMode !== 'manual') {
-                    // Show visual feedback even if not in manual focus mode or no stream
-                    this.showFocusIndicator(event.clientX, event.clientY);
-                    return; 
-                }
-                
-                const rect = this.videoElement.getBoundingClientRect();
-                const x = (event.clientX - rect.left) / rect.width;
-                const y = (event.clientY - rect.top) / rect.height;
-                
-                // Ensure coordinates are within bounds [0, 1]
-                const clampedX = Math.max(0, Math.min(1, x));
-                const clampedY = Math.max(0, Math.min(1, y));
-                
-                const track = this.stream.getVideoTracks()[0];
-                if (!track) return;
+                const res = this.getCurrentResolution();
+                const videoTrack = this.stream.getVideoTracks()[0];
                 
                 try {
-                    const capabilities = track.getCapabilities();
-                    
-                    if (capabilities.pointsOfInterest) {
-                        await track.applyConstraints({
-                            advanced: [{
-                                pointsOfInterest: [{ x: clampedX, y: clampedY }]
-                            }]
-                        });
-                        this.showMessage('Focus point set', 'info');
-                        this.showFocusIndicator(event.clientX, event.clientY); // Show indicator on successful set
-                    } else {
-                        this.showMessage('Tap to focus not supported on this device', 'warning');
-                        this.showFocusIndicator(event.clientX, event.clientY);
-                    }
+                    await videoTrack.applyConstraints({
+                        width: { ideal: res.width },
+                        height: { ideal: res.height }
+                    });
                 } catch (error) {
-                    console.warn('Could not set focus point:', error);
-                    this.showMessage('Error setting focus point', 'error');
-                    this.showFocusIndicator(event.clientX, event.clientY);
+                    console.error('Resolution change failed:', error);
+                    this.showError('Failed to change resolution');
                 }
             }
-            
-            showFocusIndicator(x, y) {
-                // Create temporary focus indicator
-                const indicator = document.createElement('div');
-                indicator.style.position = 'fixed';
-                indicator.style.left = (x - 25) + 'px';
-                indicator.style.top = (y - 25) + 'px';
-                indicator.style.width = '50px';
-                indicator.style.height = '50px';
-                indicator.style.border = '2px solid #3b82f6';
-                indicator.style.borderRadius = '50%';
-                indicator.style.pointerEvents = 'none';
-                indicator.style.zIndex = '1000';
-                indicator.style.animation = 'focusPulse 1s ease-out';
+
+            async changeFocusMode(focusMode) {
+                if (!this.stream) return;
                 
-                document.body.appendChild(indicator);
+                const videoTrack = this.stream.getVideoTracks()[0];
+                const capabilities = videoTrack.getCapabilities();
                 
+                if (capabilities.focusMode && capabilities.focusMode.includes(focusMode)) {
+                    try {
+                        await videoTrack.applyConstraints({
+                            advanced: [{ focusMode: focusMode }]
+                        });
+                    } catch (error) {
+                        console.error('Focus mode change failed:', error);
+                    }
+                }
+            }
+
+            async toggleStream() {
+                const btn = document.getElementById('start-stream');
+                const status = document.getElementById('stream-status');
+                
+                if (!this.isStreaming) {
+                    try {
+                        await this.startStreaming();
+                        btn.innerHTML = '<span class="text-2xl">⏹️</span><span class="text-xs mt-1">Stop</span>';
+                        btn.classList.replace('bg-red-600', 'bg-gray-600');
+                        status.textContent = 'Streaming';
+                        status.classList.replace('text-red-400', 'text-green-400');
+                        this.updateConnectionStatus('streaming');
+                    } catch (error) {
+                        console.error('Failed to start streaming:', error);
+                        this.showError('Failed to start streaming');
+                    }
+                } else {
+                    this.stopStreaming();
+                    btn.innerHTML = '<span class="text-2xl">📡</span><span class="text-xs mt-1">Stream</span>';
+                    btn.classList.replace('bg-gray-600', 'bg-red-600');
+                    status.textContent = 'Stopped';
+                    status.classList.replace('text-green-400', 'text-red-400');
+                    this.updateConnectionStatus('connected');
+                }
+            }
+
+            async startStreaming() {
+                if (!this.stream) {
+                    throw new Error('No camera stream available');
+                }
+
+                // Create MediaRecorder for streaming
+                const options = { mimeType: 'video/webm;codecs=vp8,opus' };
+                this.mediaRecorder = new MediaRecorder(this.stream, options);
+                
+                const chunks = [];
+                this.mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        chunks.push(event.data);
+                        this.broadcastToViewers(event.data);
+                    }
+                };
+
+                this.mediaRecorder.start(100); // Record in 100ms chunks
+                this.isStreaming = true;
+                
+                // Simulate viewer connection for demo
                 setTimeout(() => {
-                    if (indicator.parentNode) {
-                        indicator.parentNode.removeChild(indicator);
-                    }
-                }, 1000);
+                    document.getElementById('viewer-count').textContent = '1';
+                }, 2000);
             }
-            
-            toggleFullscreen() {
-                if (!document.fullscreenElement) { // Check if currently NOT in fullscreen
-                    if (document.documentElement.requestFullscreen) {
-                        document.documentElement.requestFullscreen();
-                    } else if (document.documentElement.webkitRequestFullscreen) { /* Safari */
-                        document.documentElement.webkitRequestFullscreen();
-                    }
-                    this.isFullscreen = true;
-                } else { // Currently in fullscreen
-                    if (document.exitFullscreen) {
-                        document.exitFullscreen();
-                    } else if (document.webkitExitFullscreen) { /* Safari */
-                        document.webkitExitFullscreen();
-                    }
-                    this.isFullscreen = false;
+
+            stopStreaming() {
+                if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+                    this.mediaRecorder.stop();
                 }
-                // The fullscreenchange event listener will handle the class toggling on video element
-            }
-            
-            toggleSettings() {
-                const bottomControls = document.getElementById('bottomControls');
-                const topControls = document.getElementById('topControls');
+                this.isStreaming = false;
+                document.getElementById('viewer-count').textContent = '0';
                 
-                const isHidden = bottomControls.style.display === 'none';
-                bottomControls.style.display = isHidden ? 'block' : 'none';
-                topControls.style.display = isHidden ? 'flex' : 'none'; // Top controls use flex
+                // Close all peer connections
+                this.peerConnections.forEach(pc => pc.close());
+                this.peerConnections.clear();
             }
-            
-            copyStreamUrl() {
-                const streamUrl = document.getElementById('streamUrl').textContent;
-                
-                // Modern clipboard API
-                if (navigator.clipboard && window.isSecureContext) {
-                    navigator.clipboard.writeText(streamUrl).then(() => {
-                        this.showMessage('Stream URL copied to clipboard', 'success');
-                    }).catch((err) => {
-                        console.warn('Clipboard write failed:', err);
-                        this.fallbackCopyUrl(streamUrl);
+
+            broadcastToViewers(chunk) {
+                // In a real implementation, this would send data to connected viewers
+                // For demo purposes, we'll just log the streaming activity
+                console.log('Broadcasting chunk of size:', chunk.size);
+            }
+
+            toggleFullscreen() {
+                if (!document.fullscreenElement) {
+                    this.video.requestFullscreen().then(() => {
+                        this.video.classList.add('fullscreen-video');
                     });
                 } else {
-                    this.fallbackCopyUrl(streamUrl);
+                    document.exitFullscreen().then(() => {
+                        this.video.classList.remove('fullscreen-video');
+                    });
                 }
             }
-            
-            fallbackCopyUrl(text) {
-                try {
-                    // Fallback for older browsers or non-secure contexts
-                    const textArea = document.createElement('textarea');
-                    textArea.value = text;
-                    textArea.style.position = 'fixed';
-                    textArea.style.left = '-999999px';
-                    textArea.style.top = '-999999px';
-                    document.body.appendChild(textArea);
-                    textArea.focus();
-                    textArea.select();
-                    
-                    const successful = document.execCommand('copy');
-                    document.body.removeChild(textArea);
-                    
-                    if (successful) {
-                        this.showMessage('Stream URL copied to clipboard', 'success');
-                    } else {
-                        this.showMessage('Could not copy URL. Please copy manually.', 'warning');
-                    }
-                } catch (err) {
-                    console.warn('Fallback copy failed:', err);
-                    this.showMessage('Copy not supported. Please copy URL manually.', 'warning');
-                }
+
+            showSettings() {
+                document.getElementById('settings-modal').classList.remove('hidden');
             }
-            
-            startStreaming() {
-                if (this.streamingInterval) {
-                    clearInterval(this.streamingInterval);
-                }
-                
-                // Set up canvas to match video dimensions
-                // These will be updated dynamically in setupMJPEGStream as video dimensions become available
-                this.canvas.width = this.videoElement.videoWidth || 1280;
-                this.canvas.height = this.videoElement.videoHeight || 720;
-                
-                this.setupMJPEGStream();
-                
-                this.isStreaming = true;
-                this.showMessage('Streaming started (requires backend server)', 'success');
+
+            hideSettings() {
+                document.getElementById('settings-modal').classList.add('hidden');
             }
-            
-            setupMJPEGStream() {
-                // Clear any existing interval
-                if (this.streamingInterval) {
-                    clearInterval(this.streamingInterval);
-                }
+
+            saveSettings() {
+                const port = document.getElementById('stream-port').value;
+                const quality = document.getElementById('quality-select').value;
+                const autoStart = document.getElementById('auto-start-toggle').checked;
                 
-                const startCapturing = () => {
-                    if (this.videoElement.videoWidth > 0 && this.videoElement.videoHeight > 0) {
-                        this.streamingInterval = setInterval(() => {
-                            try {
-                                // Ensure canvas size matches video to avoid stretching/blurring
-                                if (this.canvas.width !== this.videoElement.videoWidth || this.canvas.height !== this.videoElement.videoHeight) {
-                                    this.canvas.width = this.videoElement.videoWidth;
-                                    this.canvas.height = this.videoElement.videoHeight;
-                                }
-                                
-                                this.ctx.drawImage(this.videoElement, 0, 0, this.canvas.width, this.canvas.height);
-                                
-                                // Convert to JPEG blob for potential streaming
-                                this.canvas.toBlob((blob) => {
-                                    if (blob) {
-                                        this.processStreamFrame(blob);
-                                    }
-                                }, 'image/jpeg', 0.8); // Adjust quality as needed
-                            } catch (error) {
-                                console.warn('Error capturing stream frame:', error);
-                            }
-                        }, 1000 / 30); // Aim for 30 FPS
-                    } else {
-                        // Retry in 100ms if video not ready (dimensions not available)
-                        setTimeout(startCapturing, 100);
-                    }
+                this.streamPort = parseInt(port);
+                this.createStreamingEndpoint();
+                
+                // Apply quality settings
+                this.applyQualitySettings(quality);
+                
+                this.hideSettings();
+            }
+
+            applyQualitySettings(quality) {
+                if (!this.stream) return;
+                
+                const videoTrack = this.stream.getVideoTracks()[0];
+                const qualitySettings = {
+                    high: { width: 1920, height: 1080, frameRate: 30 },
+                    medium: { width: 1280, height: 720, frameRate: 30 },
+                    low: { width: 854, height: 480, frameRate: 24 }
                 };
                 
-                startCapturing();
+                const settings = qualitySettings[quality];
+                videoTrack.applyConstraints({
+                    width: { ideal: settings.width },
+                    height: { ideal: settings.height },
+                    frameRate: { ideal: settings.frameRate }
+                }).catch(error => console.error('Quality adjustment failed:', error));
             }
-            
-            processStreamFrame(blob) {
-                // *** IMPORTANT: This is where you would send the frame to your MJPEG server. ***
-                // The current HTML only captures frames. To stream to OBS over the network,
-                // you need a separate server-side component (e.g., Node.js, Python Flask)
-                // that listens for these frames and serves them as an MJPEG stream.
-                
-                // Example of how you *would* send it to a server (this won't work without a server):
-                /*
-                fetch(`http://${this.localIP}:${this.serverPort}/stream_upload`, {
-                    method: 'POST',
-                    body: blob,
-                    headers: {
-                        'Content-Type': 'image/jpeg'
-                    }
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        console.error('Failed to send frame to server:', response.statusText);
-                    }
-                })
-                .catch(error => {
-                    console.error('Network error sending frame:', error);
-                });
-                */
-                
-                console.debug(`Captured frame: ${blob.size} bytes. (To stream, a backend server is needed.)`);
+
+            applyCurrentSettings() {
+                this.setZoom(this.currentZoom);
+                const resolution = document.getElementById('resolution-select').value;
+                this.changeResolution(resolution);
             }
-            
-            showMessage(message, type = 'info') {
-                const container = document.getElementById('statusMessages');
-                const messageEl = document.createElement('div');
+
+            updateConnectionStatus(status) {
+                const indicator = document.getElementById('connection-status');
+                indicator.className = 'status-indicator ';
                 
-                const colors = {
-                    success: 'bg-green-600',
-                    error: 'bg-red-600',
-                    warning: 'bg-yellow-600',
-                    info: 'bg-blue-600'
-                };
+                switch (status) {
+                    case 'connected':
+                        indicator.classList.add('bg-green-500');
+                        break;
+                    case 'streaming':
+                        indicator.classList.add('bg-blue-500');
+                        break;
+                    case 'error':
+                        indicator.classList.add('bg-red-500');
+                        break;
+                    default:
+                        indicator.classList.add('bg-yellow-500');
+                }
+            }
+
+            updateBatteryStatus() {
+                if ('getBattery' in navigator) {
+                    navigator.getBattery().then(battery => {
+                        const updateBattery = () => {
+                            const level = Math.round(battery.level * 100);
+                            const charging = battery.charging ? '⚡' : '';
+                            document.getElementById('battery-status').textContent = `🔋${level}%${charging}`;
+                        };
+                        
+                        updateBattery();
+                        battery.addEventListener('levelchange', updateBattery);
+                        battery.addEventListener('chargingchange', updateBattery);
+                    });
+                }
+            }
+
+            showError(message) {
+                // Create a simple toast notification
+                const toast = document.createElement('div');
+                toast.className = 'fixed top-4 left-4 right-4 bg-red-600 text-white p-3 rounded-lg z-50';
+                toast.textContent = message;
+                document.body.appendChild(toast);
                 
-                messageEl.className = `${colors[type]} text-white px-4 py-2 rounded shadow-lg opacity-0 transition-opacity duration-300`;
-                messageEl.textContent = message;
-                
-                container.appendChild(messageEl);
-                
-                // Fade in
-                setTimeout(() => messageEl.style.opacity = '1', 10);
-                
-                // Fade out and remove
                 setTimeout(() => {
-                    messageEl.style.opacity = '0';
-                    messageEl.addEventListener('transitionend', () => {
-                        if (messageEl.parentNode) {
-                            messageEl.parentNode.removeChild(messageEl);
-                        }
-                    }, { once: true });
+                    document.body.removeChild(toast);
                 }, 3000);
             }
         }
-        
-        // Initialize the app when the page loads
+
+        // Initialize the app when DOM is loaded
         document.addEventListener('DOMContentLoaded', () => {
-            // Add click handler to start camera on user interaction (mobile requirement)
-            const startButton = document.createElement('button');
-            startButton.textContent = 'Start Camera';
-            startButton.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg text-lg font-semibold z-50';
-            startButton.id = 'startButton';
-            
-            document.body.appendChild(startButton);
-            
-            startButton.addEventListener('click', async () => {
-                startButton.style.display = 'none';
-                const streamer = new MobileCameraStreamer();
-                window.cameraStreamer = streamer; // Make it globally accessible for debugging
-            }, { once: true }); // Ensure it only runs once
+            new MobileCameraStream();
         });
-        
-        // Handle fullscreen changes
-        document.addEventListener('fullscreenchange', () => {
-            const video = document.getElementById('videoElement');
-            if (document.fullscreenElement) {
-                video.classList.add('fullscreen-video');
+
+        // Handle page visibility changes
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                // Optionally pause streaming when app goes to background
+                console.log('App went to background');
             } else {
-                video.classList.remove('fullscreen-video');
+                console.log('App came to foreground');
             }
         });
-        
-        // Handle webkit fullscreen changes (Safari)
-        document.addEventListener('webkitfullscreenchange', () => {
-            const video = document.getElementById('videoElement');
-            if (document.webkitFullscreenElement) {
-                video.classList.add('fullscreen-video');
-            } else {
-                video.classList.remove('fullscreen-video');
-            }
-        });
-        
-        // Prevent screen sleep (with proper error handling)
-        let wakeLock = null;
-        async function requestWakeLock() {
-            try {
-                if ('wakeLock' in navigator && document.visibilityState === 'visible') {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                    console.log('Screen wake lock acquired');
-                    
-                    wakeLock.addEventListener('release', () => {
-                        console.log('Screen wake lock released');
-                        // Attempt to re-acquire wake lock if it was released
-                        requestWakeLock();
-                    });
-                }
-            } catch (err) {
-                // Silently handle wake lock errors as they're not critical
-                console.debug('Wake lock not available or failed:', err.name);
-            }
-        }
-        
-        // Try to acquire wake lock when page becomes visible
-        document.addEventListener('visibilitychange', async () => {
-            if (document.visibilityState === 'visible') {
-                await requestWakeLock();
-            } else {
-                // Release wake lock when page is hidden
-                if (wakeLock !== null) {
-                    await wakeLock.release();
-                    wakeLock = null;
-                }
-            }
-        });
-        
-        // Initial wake lock request (will be triggered after user interaction due to start button)
-        // requestWakeLock(); // Removed from here as it's better to request after camera starts due to user gesture requirements
     </script>
 </body>
 </html>
